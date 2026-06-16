@@ -46,5 +46,17 @@
 			"bracketSameLine": false,
 			"attributePosition": "auto"
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["**/src/components/ui/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"useComponentExportOnlyModules": "off"
+					}
+				}
+			}
+		}
+	]
 }
