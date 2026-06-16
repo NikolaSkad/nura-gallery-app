@@ -82,7 +82,7 @@ body {
 
 	/* === Brand === */
 	--primary: oklch(0.685 0.183 45.5); /* #f87118 — highest emphasis, key actions */
-	--primary-foreground: oklch(0 0 0); /* #000000 — text on orange CTA */
+	--primary-foreground: oklch(0.94 0.005 285); /* #ebebf5 — off-white text on orange CTA */
 	--ring: oklch(0.685 0.183 45.5); /* #f87118 — focus ring matches brand */
 
 	/* === Surfaces === */

@@ -5,37 +5,66 @@ import type * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-	"group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive/50 aria-invalid:ring-3 aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+	"group/button inline-flex shrink-0 touch-manipulation items-center justify-center border border-solid bg-clip-padding font-medium whitespace-nowrap transition-colors duration-150 outline-none select-none [-webkit-tap-highlight-color:transparent] focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive/50 aria-invalid:ring-2 aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
 	{
 		variants: {
 			variant: {
-				default: 'bg-primary text-primary-foreground hover:bg-primary/80',
 				outline:
-					'border-input bg-input/30 hover:bg-input/50 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground',
-				secondary:
-					'bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground',
+					'border-primary bg-transparent text-primary backdrop-blur-[5px] hover:bg-primary/10 active:bg-primary/10',
 				ghost:
-					'hover:bg-muted/50 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground',
-				destructive:
-					'bg-destructive/20 text-destructive hover:bg-destructive/30 focus-visible:border-destructive/40 focus-visible:ring-destructive/40',
-				link: 'text-primary underline-offset-4 hover:underline',
+					'border-transparent bg-transparent text-primary hover:bg-primary/10 active:bg-primary/10',
+				filled:
+					'border-primary bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/90',
 			},
 			size: {
-				default:
-					'h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
-				xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-				sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-				lg: 'h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2',
-				icon: 'size-8',
-				'icon-xs':
-					"size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
-				'icon-sm':
-					'size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg',
-				'icon-lg': 'size-9',
+				xs: 'gap-1 rounded-full px-1.5 py-0.5 text-[10px] leading-[14px]',
+				sm: 'gap-1 rounded-full px-2 py-1 text-xs leading-[18px]',
+				default: 'gap-2 rounded-full px-4 py-3 text-base leading-6',
+				lg: 'gap-2.5 rounded-full px-5 py-3.5 text-lg leading-7',
+				icon: 'size-12 gap-0 rounded-full',
+				'icon-sm': 'size-7 gap-0 rounded-full',
+				'icon-lg': 'size-14 gap-0 rounded-full',
 			},
 		},
+		// compoundVariants: [
+		// 	{
+		// 		variant: 'filled',
+		// 		size: 'xs',
+		// 		class: 'rounded-[10px] px-2 py-0.5',
+		// 	},
+		// 	{
+		// 		variant: 'filled',
+		// 		size: 'sm',
+		// 		class: 'rounded-[14px] px-3 py-1',
+		// 	},
+		// 	{
+		// 		variant: 'filled',
+		// 		size: 'default',
+		// 		class: 'rounded-[20px] px-5 py-3 text-sm leading-5',
+		// 	},
+		// 	{
+		// 		variant: 'filled',
+		// 		size: 'lg',
+		// 		class: 'rounded-[24px] px-6 py-4',
+		// 	},
+		// 	{
+		// 		variant: 'filled',
+		// 		size: 'icon-sm',
+		// 		class: 'rounded-[14px]',
+		// 	},
+		// 	{
+		// 		variant: 'filled',
+		// 		size: 'icon',
+		// 		class: 'rounded-[20px]',
+		// 	},
+		// 	{
+		// 		variant: 'filled',
+		// 		size: 'icon-lg',
+		// 		class: 'rounded-[24px]',
+		// 	},
+		// ],
 		defaultVariants: {
-			variant: 'default',
+			variant: 'outline',
 			size: 'default',
 		},
 	},
@@ -43,8 +72,8 @@ const buttonVariants = cva(
 
 function Button({
 	className,
-	variant = 'default',
-	size = 'default',
+	variant,
+	size,
 	asChild = false,
 	...props
 }: React.ComponentProps<'button'> &
