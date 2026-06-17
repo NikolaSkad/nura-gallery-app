@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as galleryTokenRouteRouteImport } from './routes/(gallery)/$token/route'
 import { Route as galleryTokenIndexRouteImport } from './routes/(gallery)/$token/index'
+import { Route as galleryTokenEventsEventIdRouteImport } from './routes/(gallery)/$token/events.$eventId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,28 +29,42 @@ const galleryTokenIndexRoute = galleryTokenIndexRouteImport.update({
   path: '/',
   getParentRoute: () => galleryTokenRouteRoute,
 } as any)
+const galleryTokenEventsEventIdRoute =
+  galleryTokenEventsEventIdRouteImport.update({
+    id: '/events/$eventId',
+    path: '/events/$eventId',
+    getParentRoute: () => galleryTokenRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$token': typeof galleryTokenRouteRouteWithChildren
   '/$token/': typeof galleryTokenIndexRoute
+  '/$token/events/$eventId': typeof galleryTokenEventsEventIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$token': typeof galleryTokenIndexRoute
+  '/$token/events/$eventId': typeof galleryTokenEventsEventIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/(gallery)/$token': typeof galleryTokenRouteRouteWithChildren
   '/(gallery)/$token/': typeof galleryTokenIndexRoute
+  '/(gallery)/$token/events/$eventId': typeof galleryTokenEventsEventIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$token' | '/$token/'
+  fullPaths: '/' | '/$token' | '/$token/' | '/$token/events/$eventId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$token'
-  id: '__root__' | '/' | '/(gallery)/$token' | '/(gallery)/$token/'
+  to: '/' | '/$token' | '/$token/events/$eventId'
+  id:
+    | '__root__'
+    | '/'
+    | '/(gallery)/$token'
+    | '/(gallery)/$token/'
+    | '/(gallery)/$token/events/$eventId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -80,15 +95,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof galleryTokenIndexRouteImport
       parentRoute: typeof galleryTokenRouteRoute
     }
+    '/(gallery)/$token/events/$eventId': {
+      id: '/(gallery)/$token/events/$eventId'
+      path: '/events/$eventId'
+      fullPath: '/$token/events/$eventId'
+      preLoaderRoute: typeof galleryTokenEventsEventIdRouteImport
+      parentRoute: typeof galleryTokenRouteRoute
+    }
   }
 }
 
 interface galleryTokenRouteRouteChildren {
   galleryTokenIndexRoute: typeof galleryTokenIndexRoute
+  galleryTokenEventsEventIdRoute: typeof galleryTokenEventsEventIdRoute
 }
 
 const galleryTokenRouteRouteChildren: galleryTokenRouteRouteChildren = {
   galleryTokenIndexRoute: galleryTokenIndexRoute,
+  galleryTokenEventsEventIdRoute: galleryTokenEventsEventIdRoute,
 }
 
 const galleryTokenRouteRouteWithChildren =
