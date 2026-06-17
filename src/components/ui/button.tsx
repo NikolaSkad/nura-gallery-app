@@ -19,8 +19,8 @@ const buttonVariants = cva(
 					'border-transparent bg-secondary text-primary hover:bg-secondary/70 active:bg-secondary/70',
 			},
 			size: {
-				xs: 'gap-1 rounded-full px-1.5 py-0.5 text-[10px] leading-[14px]',
 				sm: 'gap-1 rounded-full px-2 py-1 text-xs leading-[18px]',
+				md: 'gap-1.5 rounded-full px-3 py-2 text-base',
 				default: 'gap-2 rounded-full px-4 py-3 text-base leading-6',
 				lg: 'gap-2.5 rounded-full px-5 py-3.5 text-lg leading-7',
 				icon: 'size-9 gap-0 rounded-full',
