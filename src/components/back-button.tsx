@@ -46,7 +46,7 @@ export function BackButton({
 
 	return (
 		<Button
-			variant="icon"
+			variant="subtle"
 			size="icon"
 			onClick={handleClick}
 			aria-label={ariaLabel}

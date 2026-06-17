@@ -15,7 +15,8 @@ const buttonVariants = cva(
 					'border-transparent bg-transparent text-primary hover:bg-primary/20 active:bg-primary/20',
 				filled:
 					'border-primary bg-primary text-primary-foreground hover:bg-primary/80 active:bg-primary/80',
-				icon: 'border-transparent bg-secondary text-primary hover:bg-secondary/70 active:bg-secondary/70',
+				subtle:
+					'border-transparent bg-secondary text-primary hover:bg-secondary/70 active:bg-secondary/70',
 			},
 			size: {
 				xs: 'gap-1 rounded-full px-1.5 py-0.5 text-[10px] leading-[14px]',
