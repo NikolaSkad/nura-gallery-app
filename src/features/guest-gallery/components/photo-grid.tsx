@@ -1,4 +1,4 @@
-import { PhotoCard } from '@/features/guest-gallery/components/PhotoCard';
+import { PhotoCard } from '@/features/guest-gallery/components/photo-card';
 
 const PHOTO_SLOTS = Array.from({ length: 15 }, () => crypto.randomUUID());
 

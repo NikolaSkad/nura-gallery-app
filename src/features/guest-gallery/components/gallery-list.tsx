@@ -1,4 +1,4 @@
-import { GalleryCard } from '@/features/guest-gallery/components/GalleryCard';
+import { GalleryCard } from '@/features/guest-gallery/components/gallery-card';
 
 export function GalleryList() {
 	return (

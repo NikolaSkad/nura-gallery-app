@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { EventPhotosPage } from '@/features/guest-gallery/components/EventPhotosPage';
+import { EventPhotosPage } from '@/features/guest-gallery/pages/event-photos';
 
 export const Route = createFileRoute('/(gallery)/$token/events/$eventId')({
 	component: RouteComponent,

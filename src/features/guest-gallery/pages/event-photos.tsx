@@ -1,6 +1,6 @@
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { PhotoGrid } from '@/features/guest-gallery/components/PhotoGrid';
+import { PhotoGrid } from '@/features/guest-gallery/components/photo-grid';
 
 export function EventPhotosPage() {
 	return (

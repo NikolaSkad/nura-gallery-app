@@ -1,6 +1,6 @@
 import GalleryIcon from '@/assets/gallery.svg?react';
 import { HeaderTitle, PageHeader } from '@/components/page-header';
-import { GalleryList } from '@/features/guest-gallery/components/GalleryList';
+import { GalleryList } from '@/features/guest-gallery/components/gallery-list';
 
 export function GalleryHomePage() {
 	return (
