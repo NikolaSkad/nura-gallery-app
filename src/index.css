@@ -3,6 +3,19 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+/* === Custom theme fonts ===
+ * Unique family name "PapyrusWeb" avoids collision with system Papyrus on macOS,
+ * which would otherwise short-circuit the web font load. */
+@font-face {
+	font-family: "PapyrusWeb";
+	src:
+		url("/fonts/Papyrus-Regular.woff2") format("woff2"),
+		url("/fonts/Papyrus-Regular.woff") format("woff");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
 /* Single theme — there is no light/dark switch.
  * The `dark` variant is rewritten to always apply, so any `dark:` classes
  * shipped by shadcn components resolve unconditionally. */
@@ -16,7 +29,6 @@ body,
 
 body {
 	margin: 0;
-	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
@@ -24,7 +36,6 @@ body {
 @theme inline {
 	/* === Typography === */
 	--font-sans: "Geist Variable", sans-serif;
-	--font-heading: var(--font-sans);
 
 	/* === Foundation === */
 	--color-background: var(--background);
@@ -76,6 +87,10 @@ body {
  * automatically pick up whichever theme class is active.
  * ============================================================ */
 .intimate {
+	/* === Typography (theme-scoped) ===
+	 * PapyrusWeb (hosted) → system Papyrus → Cinzel → generic serif. */
+	--font-sans: "PapyrusWeb", Papyrus, "Cinzel", serif;
+
 	/* === Foundation === */
 	--background: oklch(0 0 0); /* #000000 — page canvas */
 	--foreground: oklch(0.94 0.005 285); /* #ebebf5 — body default text */
@@ -121,6 +136,8 @@ body {
 		@apply bg-background text-foreground;
 	}
 	html {
-		@apply font-sans;
+		/* Read --font-sans dynamically so theme overrides (e.g. .intimate → Papyrus) cascade.
+		 * `@apply font-sans` would inline the @theme value at build time and ignore the override. */
+		font-family: var(--font-sans);
 	}
 }
