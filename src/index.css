@@ -31,6 +31,24 @@ body {
 	margin: 0;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	position: relative;
+	isolation: isolate;
+}
+
+/* Persistent app background — fireplace image @ 20% opacity, behind all content.
+ * Lives on body::before so it paints before React mounts (no white flash) and
+ * doesn't need wrapper markup or router involvement. */
+body::before {
+	content: "";
+	position: fixed;
+	inset: 0;
+	z-index: -1;
+	background-image: url("/fireplace.jpg");
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	opacity: 0.2;
+	pointer-events: none;
 }
 
 @theme inline {
