@@ -1,13 +1,16 @@
 import { PhotoCard } from '@/features/guest-gallery/components/photo-card';
+import { PHOTO_IDS } from '@/features/guest-gallery/utils';
 
-const PHOTO_SLOTS = Array.from({ length: 15 }, () => crypto.randomUUID());
+interface PhotoGridProps {
+	onOpen: (id: string) => void;
+}
 
-export function PhotoGrid() {
+export function PhotoGrid({ onOpen }: PhotoGridProps) {
 	return (
 		<ul className="grid grid-cols-2 gap-2">
-			{PHOTO_SLOTS.map((id) => (
+			{PHOTO_IDS.map((id) => (
 				<li key={id}>
-					<PhotoCard />
+					<PhotoCard id={id} onOpen={onOpen} />
 				</li>
 			))}
 		</ul>
