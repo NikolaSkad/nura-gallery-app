@@ -229,7 +229,8 @@ src/
 │   └── back-button.tsx
 ├── features/                        # Where the real code lives
 │   └── <feature-name>/
-│       ├── components/              # Pages + feature UI (e.g. GalleryHomePage.tsx)
+│       ├── pages/                   # One file per route — kebab-case, no "-page" suffix (e.g. gallery-home.tsx)
+│       ├── components/              # Feature-specific UI — kebab-case (e.g. gallery-card.tsx)
 │       ├── hooks/                   # Feature-specific custom hooks
 │       ├── api/                     # TanStack Query hooks + fetcher for this feature
 │       ├── types.ts                 # Feature-level types
@@ -243,11 +244,14 @@ src/
 
 ### Rules
 
-1. **Routes are thin orchestrators.** A route file parses params and renders one feature page component (e.g. `<GalleryHomePage token={token} />`). All real logic, data fetching, and JSX live in `features/<name>/components/`. Target ~20 lines per route file.
+1. **Routes are thin orchestrators.** A route file parses params and renders one feature page component (e.g. `<GalleryHomePage token={token} />`). All real logic, data fetching, and JSX live in `features/<name>/pages/<page>.tsx` (and the components it composes from `features/<name>/components/`). Target ~20 lines per route file.
 2. **Per-route-group shells live in `route.tsx`.** The guest and admin groups have different chrome (no-auth vs JWT, different layout). Each group's `route.tsx` owns its `<main>`, scroll container, and (for admin) auth boundary — pages render content only, not the wrapper.
 3. **`__root.tsx` stays minimal.** Just providers, the toast portal, and a top-level `<ErrorBoundary>`. Do not put the `<main>` element or any chrome in `__root.tsx` — the route-group layouts own that.
 4. **`PageHeader` is rendered per page, not in the layout.** The header varies per screen (back vs title, different right actions). Each page declares its own `<PageHeader …/>` as the first child of its content. The layout owns the surrounding `<main>` / scroll area only.
-5. **Default to a feature folder.** Anything tied to one or two screens goes in `features/<name>/`. The page component itself lives in `features/<name>/components/` alongside its feature UI — do not create a separate `pages/` folder.
+5. **Default to a feature folder.** Anything tied to one or two screens goes in `features/<name>/`. Page components live in `features/<name>/pages/`; feature UI (cards, lists, dialogs, etc.) lives in `features/<name>/components/`. The split keeps the route → page wiring obvious and prevents non-page UI from leaking into the routing layer.
+   - **Page file names** are kebab-case and **drop the "page" suffix** — the `pages/` folder already conveys "this is a page." So `features/guest-gallery/pages/gallery-home.tsx`, not `gallery-home-page.tsx`.
+   - **Component file names** are kebab-case across the whole project: `gallery-card.tsx`, `photo-grid.tsx`, `back-button.tsx`. PascalCase file names like `GalleryCard.tsx` are not used.
+   - **Exported component names stay PascalCase** (React requirement). The `Page` suffix on the export is allowed — `event-photos.tsx` can export `EventPhotosPage`. Match what reads clearly at the call site.
 6. **Never create global dumping folders.** Do not add to `src/components/`, `src/hooks/`, or `src/lib/` unless the code is genuinely shared across 3+ features.
 7. **`src/components/ui/` is shadcn-only.** Custom shared components (NuraDrawer-equivalents, layout primitives, `PageHeader`) go in `src/components/` at the root, not inside `ui/`.
 8. **Co-locate types and schemas.** Feature-specific Zod schemas live in `features/<name>/utils.ts`. Cross-cutting types (e.g. `ApiError`) go in a shared location only when at least 3 features need them.
@@ -401,7 +405,7 @@ Route files exist to wire URL → page. They do not own UI or data.
 ```tsx
 // routes/gallery/$token/index.tsx — thin orchestrator
 import { createFileRoute } from '@tanstack/react-router';
-import { GalleryHomePage } from '@/features/guest-gallery/components/GalleryHomePage';
+import { GalleryHomePage } from '@/features/guest-gallery/pages/gallery-home';
 
 export const Route = createFileRoute('/gallery/$token/')({
   component: RouteComponent,
@@ -414,7 +418,7 @@ function RouteComponent() {
 ```
 
 ```tsx
-// features/guest-gallery/components/GalleryHomePage.tsx — the real page
+// features/guest-gallery/pages/gallery-home.tsx — the real page
 export function GalleryHomePage({ token }: { token: string }) {
   const { data, isLoading } = useGallery(token);
   // PageHeader + content live here
@@ -509,7 +513,9 @@ Failure handling: if step 2 fails for a subset of files, surface per-file errors
 | Entity | Convention | Example |
 |---|---|---|
 | Folders | kebab-case | `event-photos/`, `host-gallery/` |
-| Component files | PascalCase | `GalleryGrid.tsx`, `UploadButton.tsx` |
+| Component files | kebab-case | `gallery-card.tsx`, `upload-button.tsx`, `photo-grid.tsx` |
+| Page files (inside `features/<name>/pages/`) | kebab-case, **no `-page` suffix** | `gallery-home.tsx`, `event-photos.tsx` (NOT `gallery-home-page.tsx`) |
+| Exported component names | PascalCase (React requirement); `Page` suffix on page exports is optional | `GalleryCard`, `EventPhotosPage` |
 | Hook files | camelCase with `use` prefix | `useGallery.ts`, `useUploadUrl.ts` |
 | Utility files | camelCase | `imageHelpers.ts`, `formatBytes.ts` |
 | Type files | camelCase | `types.ts` |
