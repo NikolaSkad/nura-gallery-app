@@ -6,10 +6,10 @@ export function GalleryHomePage() {
 	return (
 		<div className="flex flex-1 flex-col gap-8 pb-8">
 			<PageHeader leftContent={<HeaderTitle icon={<GalleryIcon />}>Photo Gallery</HeaderTitle>} />
-			<div className="flex flex-col gap-8 px-3">
+			<main className="flex flex-col gap-8 px-3">
 				<h1 className="text-2xl leading-8 text-primary">John Williams gallery</h1>
 				<GalleryList />
-			</div>
+			</main>
 		</div>
 	);
 }

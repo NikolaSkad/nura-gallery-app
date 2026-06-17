@@ -12,13 +12,13 @@ export function EventPhotosPage() {
 					</Button>
 				}
 			/>
-			<div className="flex flex-col gap-10 px-3">
+			<main className="flex flex-col gap-10 px-3">
 				<div className="flex flex-col gap-3">
 					<h1 className="text-2xl text-primary">Event 1</h1>
 					<p className="text-sm text-primary">Friday 24 Oct, 18:00 - 21:00</p>
 				</div>
 				<PhotoGrid />
-			</div>
+			</main>
 		</div>
 	);
 }
