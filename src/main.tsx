@@ -1,10 +1,14 @@
 import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { NotFoundPage } from '@/features/landing/pages/not-found';
 import './index.css';
 import { routeTree } from './routeTree.gen';
 
-const router = createRouter({ routeTree });
+const router = createRouter({
+	routeTree,
+	defaultNotFoundComponent: () => <NotFoundPage />,
+});
 
 declare module '@tanstack/react-router' {
 	interface Register {
