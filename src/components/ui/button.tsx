@@ -5,7 +5,7 @@ import type * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-	"group/button inline-flex shrink-0 touch-manipulation items-center justify-center border border-solid bg-clip-padding font-medium whitespace-nowrap transition-colors duration-150 outline-none select-none [-webkit-tap-highlight-color:transparent] focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive/50 aria-invalid:ring-2 aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+	"group/button inline-flex shrink-0 touch-manipulation items-center justify-center border border-solid bg-clip-padding font-medium whitespace-nowrap transition-colors duration-150 outline-none select-none [-webkit-tap-highlight-color:transparent] focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive/50 aria-invalid:ring-2 aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
 	{
 		variants: {
 			variant: {
@@ -15,15 +15,14 @@ const buttonVariants = cva(
 					'border-transparent bg-transparent text-primary hover:bg-primary/20 active:bg-primary/20',
 				filled:
 					'border-primary bg-primary text-primary-foreground hover:bg-primary/80 active:bg-primary/80',
+				icon: 'border-transparent bg-secondary text-primary hover:bg-secondary/70 active:bg-secondary/70',
 			},
 			size: {
 				xs: 'gap-1 rounded-full px-1.5 py-0.5 text-[10px] leading-[14px]',
 				sm: 'gap-1 rounded-full px-2 py-1 text-xs leading-[18px]',
 				default: 'gap-2 rounded-full px-4 py-3 text-base leading-6',
 				lg: 'gap-2.5 rounded-full px-5 py-3.5 text-lg leading-7',
-				icon: 'size-12 gap-0 rounded-full',
-				'icon-sm': 'size-7 gap-0 rounded-full',
-				'icon-lg': 'size-14 gap-0 rounded-full',
+				icon: 'size-9 gap-0 rounded-full',
 			},
 		},
 		// compoundVariants: [
