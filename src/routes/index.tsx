@@ -1,13 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { HomePage } from '@/features/landing/pages/home';
 
 export const Route = createFileRoute('/')({
-	component: HomePage,
+	component: RouteComponent,
 });
 
-function HomePage() {
-	return (
-		<main className="flex min-h-full items-center justify-center">
-			<h1 className="text-2xl font-medium text-neutral-800">Nura Gallery</h1>
-		</main>
-	);
+function RouteComponent() {
+	return <HomePage />;
 }
