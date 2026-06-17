@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 export function GalleryCard() {
 	return (
 		<Link
-			className="flex w-full flex-col gap-0.5 rounded-[20px] bg-surface-glass p-3 backdrop-blur-md"
+			className="flex w-full flex-col gap-0.5 rounded-[20px] p-3 bg-surface-glass backdrop-blur-md"
 			to="/$token/events/$eventId"
 			params={{ token: 'abc123', eventId: '1' }}
 		>

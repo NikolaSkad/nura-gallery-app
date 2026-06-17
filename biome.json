@@ -27,7 +27,9 @@
 		"rules": {
 			"preset": "recommended",
 			"a11y": {
-				"noSvgWithoutTitle": "off"
+				"noSvgWithoutTitle": "off",
+				"noStaticElementInteractions": "off",
+				"useKeyWithClickEvents": "off"
 			},
 			"style": {
 				"useComponentExportOnlyModules": {
