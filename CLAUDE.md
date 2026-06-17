@@ -2,16 +2,69 @@
 
 ## Project Overview
 
-NURA Gallery is the **web companion app** for hosts and guests to upload, browse, and manage event photos. It is a separate codebase from the main NURA event-management web app — that app is MUI-based; this one is the modern Tailwind + shadcn rebuild that will eventually replace shared visual surfaces.
+NURA Gallery is the **web platform for event photos**. It is a separate web sub-platform from the main NURA event-management apps. v1 is web-only — no native gallery in the iOS / Android NURA apps.
 
-The backend issues short-lived **presigned upload/download URLs** to a Supabase Storage bucket. The frontend never holds storage credentials. Image bytes go directly from the browser to Supabase via `PUT`; the backend stores metadata only.
+This single SPA hosts **two distinct experiences**, gated by route group:
 
-A separate iOS native app exists in another repo. Android is planned. All clients consume the shared backend API.
+| Route group | Audience | Auth | Purpose |
+|---|---|---|---|
+| `/gallery/:token/*` | Guests | **No auth — the token in the URL is the access** | Browse events they attended, view photos, download single photos and whole events |
+| `/admin/*` | NURA platform admins | JWT (existing NURA admin auth) | Create per-guest galleries, assign events, upload photos (direct-to-Supabase), trigger SMS notifications |
+
+There is **no guest signup / login**. The unique gallery link IS the access. Each guest gallery is created and curated manually by a NURA admin.
+
+### Domain model (per BE plan)
+
+```
+guest_galleries (1 per guest, identified by phone number, holds a unique token)
+  └── guest_gallery_events (which events this guest's gallery shows)
+        └── gallery_photos (photos of THIS guest at THIS event)
+```
+
+**Photos are per-guest-per-event.** The same event linked into two different galleries holds different photos in each. The token in the URL gates everything — at the API layer, every guest read validates `token → gallery → gallery_event → photo`.
+
+### Upload flow (admin → Supabase, direct, no proxy)
+
+```
+1. Admin selects files in the admin UI.
+2. Admin client → BE: POST /gallery/admin/:id/events/:eventId/upload-urls
+   { files: [{ fileName, mimeType }, ...] }
+   ← { uploads: [{ fileKey, uploadUrl }, ...] }     // presigned PUT URLs with embedded metadata
+3. Admin client → Supabase Storage: PUT <uploadUrl> --data-binary <file>
+   (Image bytes never touch our backend. Metadata travels in the presigned URL.)
+4. Admin client → BE: POST /gallery/admin/:id/events/:eventId/photos/sync
+   BE lists files in the Supabase path, creates gallery_photos rows for any
+   files not yet in the DB (metadata read from Supabase).
+```
+
+The frontend never holds Supabase credentials — `@supabase/supabase-js` is **not** a dependency. Uploads are plain `fetch(uploadUrl, { method: 'PUT', body: file })`.
+
+### Bulk download (whole event) — client-side
+
+ZIP bundling happens **in the browser**, not on the backend. The guest view fetches the photo URL list from the API and zips client-side via **JSZip**. The backend has no ZIP endpoint by design.
+
+### Image previews
+
+Supabase Image Transformations: append `?width=400&height=400&resize=contain` to the public URL for the grid thumbnails. Full-res downloads hit the raw public URL.
+
+### Notifications
+
+SMS is sent by the backend (Twilio). The admin client triggers it via `POST /gallery/admin/:id/notify`. The frontend never sends SMS directly.
 
 ### External links
 
-- Figma: `https://www.figma.com/design/psuZDBTtCTeXkelocKYBEN/Nura--in-dev-`
-- Backend API: not yet built (frontend mocks with MSW)
+- Figma (design): `https://www.figma.com/design/psuZDBTtCTeXkelocKYBEN/Nura--in-dev-`
+- Backend API: in development; FE mocks with MSW until ready
+- Storage: Supabase Storage, bucket `gallery`, path `gallery/{galleryId}/{eventId}/{uuid}.{ext}`
+
+### Open product questions (track separately, do not encode into FE behavior)
+
+- Gallery retention policy (how long do galleries stay live?)
+- Final allowed mime types (BE plan says JPEG / PNG / WebP — confirm HEIC support)
+- Max file size (BE plan says 50MB)
+- Max batch upload (BE plan says 50 files per request)
+
+These are domain decisions that should not be hardcoded into FE constants until BE confirms. When the FE needs to enforce a limit, read it from a shared config or fall back to the BE-stated default with a `TODO(domain-confirm)` comment.
 
 ---
 
@@ -43,9 +96,11 @@ They apply to every contributor — human or AI agent.
 | Theming | CSS variables + `.<theme>` class on `<html>` | Single theme today: `intimate` |
 | State (server) | TanStack Query (planned, not yet installed) | Replaces RTK Query — do not introduce Redux |
 | State (client) | `useState` / URL state / route loaders | Lift only when needed |
-| Routing | TanStack Router (file-based, with autoCodeSplitting) | |
+| Routing | TanStack Router (file-based, with autoCodeSplitting) | Two route groups: `/gallery/:token/*` (no auth) and `/admin/*` (JWT) |
 | Forms | React Hook Form + Zod | The only form pattern — no exceptions |
 | Storage | Supabase Storage (presigned URLs from backend) | Frontend uses `fetch` PUT, no `@supabase/supabase-js` |
+| Image previews | Supabase Image Transformations (`?width=&height=&resize=contain`) | Append query params to the public URL; full-res = raw public URL |
+| Client-side ZIP (bulk download) | JSZip (planned, not yet installed) | Backend has no ZIP endpoint — bundling is FE's job |
 | API mocking | MSW (planned) | Same `/api/...` paths as production |
 | Lint + format | Biome | `pnpm lint`, `pnpm format`, `pnpm check` |
 
@@ -297,10 +352,45 @@ Always use `@/` for imports from `src/`. Never use relative paths that climb mor
 ## TanStack Router (file-based)
 
 - Routes live in `src/routes/`. The Vite plugin watches this folder and writes `src/routeTree.gen.ts`. **`routeTree.gen.ts` is committed** — do not gitignore it. Biome ignores it via `biome.json`.
-- The root route is `src/routes/__root.tsx`. It renders a `<RouterProvider>` outlet and is where global layout (nav, footer, error boundary) lives.
+- The root route is `src/routes/__root.tsx`. It renders a `<RouterProvider>` outlet and is where global layout (toast portal, error boundary, theme class) lives.
 - **Do not add manual `React.lazy()`** around route components. The `tanstackRouter` plugin handles per-route code splitting automatically.
 - Use TanStack Router's `<Link>` (not raw `<a>`) for in-app navigation. The `Register` augmentation in `main.tsx` gives you full type-checked `to=` props.
 - For data dependencies that should preload with the route, use route `loader` functions paired with TanStack Query (queryClient lives in route context).
+
+### The two route groups
+
+```
+src/routes/
+├── __root.tsx                          # Global shell (theme, toast portal, error boundary)
+├── index.tsx                           # Landing — may redirect to /admin when JWT present
+├── gallery/
+│   └── $token/
+│       ├── index.tsx                   # Gallery home: guest name + events list
+│       ├── events.$eventId.tsx         # Photo grid for one event + "Download gallery"
+│       └── photos.$photoId.tsx         # Single photo viewer + prev/next + download
+└── admin/
+    ├── route.tsx                       # Auth boundary — redirects to login when no JWT
+    ├── index.tsx                       # Admin dashboard: list of guest galleries
+    └── galleries/
+        ├── new.tsx                     # Create gallery (name + phone number)
+        └── $id.tsx                     # Manage one gallery: events, uploads, notify
+```
+
+(Layout above is the **target**; routes get added as features land — do not pre-scaffold empty files.)
+
+### Guest route group (`/gallery/$token/*`)
+
+- **No authentication header.** The token in the URL path is the only credential.
+- Every API call from a guest route hits an endpoint shaped `/gallery/:token/...` and the backend re-validates the chain (`token → gallery → gallery_event → photo`) on every request. The FE does not cache or compare tokens — treat every API response that includes `id`s as authoritative.
+- **Do not store the token in `localStorage`, cookies, or any client state.** It stays in the URL. If the user reloads, the URL provides it again.
+- **Do not link out of the guest experience into `/admin/*`.** Guests don't see admin UI at all.
+
+### Admin route group (`/admin/*`)
+
+- Wrapped by an auth boundary in `admin/route.tsx` — redirects to login when no JWT.
+- The JWT mechanism is shared with the main NURA app (existing infra). Do not invent a new auth flow.
+- Admin API calls hit `/gallery/admin/...` and carry `Authorization: Bearer <jwt>` via the TanStack Query default fetcher.
+- Admin actions never touch the guest token system. Uploads target a specific gallery + event by their UUIDs.
 
 ---
 
@@ -333,11 +423,22 @@ const { control, handleSubmit } = useForm<FormData>({
 When TanStack Query lands:
 
 - One `QueryClient` instance, created in `main.tsx`, wrapped in `<QueryClientProvider>`. Also passed into TanStack Router's context so route `loader`s can prefetch.
-- **Query keys are arrays starting with the resource name**: `['gallery', galleryId]`, `['images', { galleryId, page }]`. Always include any IDs and filter args in the key.
+- **Query keys are arrays starting with the resource name**: `['gallery', token]`, `['gallery-event', token, eventId]`, `['admin-galleries']`, `['admin-photos', galleryId, eventId]`. Always include any IDs and filter args.
 - **Feature-specific query hooks live in `features/<name>/api/`**, not in a global `api/` folder.
 - **`enabled: false` for queries that depend on a missing ID** (TanStack Query's equivalent of RTK Query's `skip`).
 - **Mutations invalidate the precise query keys they affect**, not the whole cache.
 - DTOs (response types) live next to the hook that uses them in the same file. Cross-cutting types (`ApiError`, `Paginated<T>`) belong in `src/lib/api.ts` or similar — only when 3+ features need them.
+- **Two fetcher functions**, not one: a `guestFetch` (no `Authorization` header, takes token from URL) and an `adminFetch` (attaches `Authorization: Bearer <jwt>`). Wrap them in the `queryFn` of the relevant query hooks. **Never reuse the admin fetcher in a guest hook** — it would leak the JWT into a public context.
+
+### Upload flow specifics (admin)
+
+The 3-step `upload-urls → PUT to Supabase → sync` flow is the canonical pattern. Implement it as **three sequential mutations** in a single orchestrator hook (`useUploadPhotos`), not as one large `async` function buried in a component:
+
+1. `useRequestUploadUrls` — `POST /gallery/admin/:id/events/:eventId/upload-urls`. Returns `{ uploads: [{ fileKey, uploadUrl }, ...] }`.
+2. **Direct PUT to Supabase** (no TanStack Query mutation — just `fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': mimeType }, body: file })`). Run these in parallel via `Promise.allSettled` with a concurrency cap (default 6 — matches browser parallel-fetch limit). Track per-file progress for the UI.
+3. `useSyncPhotos` — `POST /gallery/admin/:id/events/:eventId/photos/sync`. On success, invalidate the photo list query key.
+
+Failure handling: if step 2 fails for a subset of files, surface per-file errors in the UI and let the user retry just the failed ones. **Never silently swallow upload failures** — partial successes are common (network blips on large batches).
 
 ---
 
