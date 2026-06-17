@@ -10,33 +10,51 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as galleryTokenRouteRouteImport } from './routes/(gallery)/$token/route'
+import { Route as galleryTokenIndexRouteImport } from './routes/(gallery)/$token/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const galleryTokenRouteRoute = galleryTokenRouteRouteImport.update({
+  id: '/(gallery)/$token',
+  path: '/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const galleryTokenIndexRoute = galleryTokenIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => galleryTokenRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$token': typeof galleryTokenRouteRouteWithChildren
+  '/$token/': typeof galleryTokenIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$token': typeof galleryTokenIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/(gallery)/$token': typeof galleryTokenRouteRouteWithChildren
+  '/(gallery)/$token/': typeof galleryTokenIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/$token' | '/$token/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/$token'
+  id: '__root__' | '/' | '/(gallery)/$token' | '/(gallery)/$token/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  galleryTokenRouteRoute: typeof galleryTokenRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +66,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(gallery)/$token': {
+      id: '/(gallery)/$token'
+      path: '/$token'
+      fullPath: '/$token'
+      preLoaderRoute: typeof galleryTokenRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(gallery)/$token/': {
+      id: '/(gallery)/$token/'
+      path: '/'
+      fullPath: '/$token/'
+      preLoaderRoute: typeof galleryTokenIndexRouteImport
+      parentRoute: typeof galleryTokenRouteRoute
+    }
   }
 }
 
+interface galleryTokenRouteRouteChildren {
+  galleryTokenIndexRoute: typeof galleryTokenIndexRoute
+}
+
+const galleryTokenRouteRouteChildren: galleryTokenRouteRouteChildren = {
+  galleryTokenIndexRoute: galleryTokenIndexRoute,
+}
+
+const galleryTokenRouteRouteWithChildren =
+  galleryTokenRouteRoute._addFileChildren(galleryTokenRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  galleryTokenRouteRoute: galleryTokenRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

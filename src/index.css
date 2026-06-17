@@ -69,6 +69,7 @@ body::before {
 	--color-card-foreground: var(--card-foreground);
 	--color-popover: var(--popover);
 	--color-popover-foreground: var(--popover-foreground);
+	--color-surface-glass: var(--surface-glass);
 
 	/* === Component states === */
 	--color-secondary: var(--secondary);
@@ -123,6 +124,10 @@ body::before {
 	--card-foreground: oklch(0.94 0.005 285); /* #ebebf5 */
 	--popover: oklch(0.225 0 0); /* #1c1c1c */
 	--popover-foreground: oklch(0.94 0.005 285); /* #ebebf5 */
+	--surface-glass: oklch(
+		0.405 0 0 /
+		43%
+	); /* #535252 @ 43% — glass overlays (pair with backdrop-blur) */
 
 	/* === Component states === */
 	--secondary: oklch(0.225 0 0); /* #1c1c1c — secondary button bg */

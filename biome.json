@@ -26,6 +26,9 @@
 		"domains": { "react": "recommended" },
 		"rules": {
 			"preset": "recommended",
+			"a11y": {
+				"noSvgWithoutTitle": "off"
+			},
 			"style": {
 				"useComponentExportOnlyModules": {
 					"level": "warn",
