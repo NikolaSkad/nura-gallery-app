@@ -9,7 +9,8 @@ import { PHOTO_IDS } from '@/features/guest-gallery/utils';
 
 const route = getRouteApi('/(gallery)/$token/events/$eventId');
 
-export function EventPhotosPage() {
+export function EventPhotos() {
+	const { token } = route.useParams();
 	const { img } = route.useSearch();
 	const navigate = route.useNavigate();
 
@@ -34,6 +35,7 @@ export function EventPhotosPage() {
 						Download gallery
 					</Button>
 				}
+				backTo={`/${token}`}
 			/>
 			<main className="flex flex-col gap-10 px-3">
 				<div className="flex flex-col gap-3">
