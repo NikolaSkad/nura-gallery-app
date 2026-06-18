@@ -27,7 +27,7 @@ export type CreateGalleryFormData = z.infer<typeof createGallerySchema>;
 
 export const addEventSchema = z.object({
 	eventId: z.string().min(1, 'Choose an event'),
-	participantId: z.string().min(1, 'Choose a participant'),
+	participantIds: z.array(z.string()).min(1, 'Choose at least one participant'),
 });
 
 export type AddEventFormData = z.infer<typeof addEventSchema>;

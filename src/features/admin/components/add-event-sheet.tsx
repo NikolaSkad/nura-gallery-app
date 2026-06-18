@@ -6,13 +6,25 @@ import { SheetPage } from '@/components/sheet-page';
 import { Title } from '@/components/title';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { SearchableMultiSelect } from '@/components/ui/searchable-multi-select';
 import { SearchableSelect } from '@/components/ui/searchable-select';
-import { useAdminEventsSearch } from '@/features/admin/api/events';
+import {
+	type EventParticipant,
+	useAdminEventsSearch,
+	useEventParticipants,
+} from '@/features/admin/api/events';
 import { type AddEventFormData, addEventSchema } from '@/features/admin/utils';
 
 interface AddEventSheetProps {
 	open: boolean;
 	onClose: () => void;
+}
+
+function getParticipantLabel(participant: EventParticipant): string {
+	if (participant.isPlusOne) {
+		return participant.plusOneName || participant.plusOnePhoneNumber || 'Plus one';
+	}
+	return participant.user.fullName || participant.user.phoneNumber || 'Unknown participant';
 }
 
 export function AddEventSheet({ open, onClose }: AddEventSheetProps) {
@@ -25,20 +37,35 @@ export function AddEventSheet({ open, onClose }: AddEventSheetProps) {
 
 	const form = useForm<AddEventFormData>({
 		resolver: zodResolver(addEventSchema),
-		defaultValues: { eventId: '', participantId: '' },
+		defaultValues: { eventId: '', participantIds: [] },
 		mode: 'onSubmit',
 	});
 
+	const selectedEventId = form.watch('eventId');
+	const participants = useEventParticipants(selectedEventId || undefined);
+	const participantOptions = useMemo(
+		() =>
+			participants.data?.map((participant) => ({
+				value: participant.id,
+				label: getParticipantLabel(participant),
+			})) ?? [],
+		[participants.data],
+	);
+	const participantsEmptyText = !selectedEventId
+		? 'Choose an event first'
+		: participants.isError
+			? "Couldn't load participants"
+			: 'No participants found';
+
 	const submit = form.handleSubmit(() => {
-		// Wiring lands here once the events/participants endpoints exist.
-		// Until then this just validates and closes the sheet.
+		// Stub: the bulk-attach endpoint isn't built yet.
+		// When it lands, replace this with the mutation call passing { eventId, participantIds }.
 		form.reset();
 		onClose();
 	});
 
-	const selectedEventId = form.watch('eventId');
 	const eventError = form.formState.errors.eventId?.message;
-	const participantError = form.formState.errors.participantId?.message;
+	const participantsError = form.formState.errors.participantIds?.message;
 
 	return (
 		<SheetPage open={open} onClose={onClose}>
@@ -59,7 +86,7 @@ export function AddEventSheet({ open, onClose }: AddEventSheetProps) {
 									value={field.value || undefined}
 									onValueChange={(next) => {
 										field.onChange(next);
-										form.setValue('participantId', '');
+										form.setValue('participantIds', []);
 									}}
 									placeholder="Choose event"
 									searchPlaceholder="Search events…"
@@ -78,26 +105,25 @@ export function AddEventSheet({ open, onClose }: AddEventSheetProps) {
 					<div className="flex flex-col gap-2">
 						<Controller
 							control={form.control}
-							name="participantId"
+							name="participantIds"
 							render={({ field }) => (
-								<SearchableSelect
-									id="add-event-participant"
-									options={[]}
-									value={field.value || undefined}
+								<SearchableMultiSelect
+									id="add-event-participants"
+									options={participantOptions}
+									value={field.value}
 									onValueChange={field.onChange}
-									placeholder="Choose participant"
+									placeholder="Choose participants"
 									searchPlaceholder="Search participants…"
-									emptyText={
-										selectedEventId ? 'No participants available' : 'Choose an event first'
-									}
+									emptyText={participantsEmptyText}
+									loading={Boolean(selectedEventId) && participants.isPending}
 									disabled={!selectedEventId}
-									aria-invalid={Boolean(participantError)}
+									aria-invalid={Boolean(participantsError)}
 								/>
 							)}
 						/>
-						{participantError ? (
+						{participantsError ? (
 							<p className="text-sm text-destructive" role="alert">
-								{participantError}
+								{participantsError}
 							</p>
 						) : null}
 					</div>

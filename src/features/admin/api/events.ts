@@ -2,6 +2,36 @@ import { useQuery } from '@tanstack/react-query';
 
 import { adminFetch } from '@/lib/api';
 
+export type ParticipantRole = 'HOST' | 'CO_HOST' | 'GUEST';
+export type RsvpStatus = 'PENDING' | 'GOING' | 'DECLINED';
+
+export interface ParticipantUser {
+	id: string;
+	fullName: string;
+	phoneNumber: string;
+	isActive: boolean;
+}
+
+export interface EventParticipant {
+	id: string;
+	eventId: string;
+	userId: string;
+	user: ParticipantUser;
+	role: ParticipantRole;
+	rsvpStatus: RsvpStatus;
+	isPlusOne: boolean | null;
+	plusOneName: string | null;
+	plusOnePhoneNumber: string | null;
+}
+
+export function useEventParticipants(eventId: string | undefined) {
+	return useQuery({
+		queryKey: ['event-participants', eventId ?? ''] as const,
+		queryFn: () => adminFetch<EventParticipant[]>(`/events/${eventId}/participants`),
+		enabled: Boolean(eventId),
+	});
+}
+
 export interface EventHost {
 	id: string;
 	fullName: string;
@@ -9,14 +39,16 @@ export interface EventHost {
 	isActive: boolean;
 }
 
+export type EventStatus = 'ARCHIVED' | 'PENDING' | 'REJECTED' | 'APPROVED' | 'PAID' | 'FINISHED';
+
 export interface AdminEvent {
 	id: string;
 	venueId: number;
 	hostId: string;
-	host: EventHost;
-	status: string;
+	host?: EventHost;
+	status: EventStatus;
 	name: string;
-	description: string;
+	description: string | null;
 	startAt: string;
 	endAt: string;
 	maxGuests: number;
