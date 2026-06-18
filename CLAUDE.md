@@ -260,7 +260,7 @@ src/
 3. **`__root.tsx` stays minimal.** Just providers, the toast portal, and a top-level `<ErrorBoundary>`. Do not put the `<main>` element or any chrome in `__root.tsx` — the route-group layouts own the wrapping container. The shape today is `createRootRouteWithContext<{ queryClient, auth }>()` so child `beforeLoad`s can read both off route context.
 4. **`PageHeader` is rendered per page, and is a sibling of `<main>` — not inside it.** The header varies per screen (back vs title, different right actions). Each page renders `<Page><PageHeader /><PageMain>…body…</PageMain></Page>` (see rule 11 for the wrappers). Layout owns the wrapper, page owns its own `<main>`. This keeps exactly one `<main>` per rendered document (HTML5 spec: only one non-hidden `<main>` per document) and exposes both the `banner` (`<header>`) and `main` landmarks to screen readers.
 5. **Default to a feature folder.** Anything tied to one or two screens goes in `features/<name>/`. Page components live in `features/<name>/pages/`; feature UI (cards, lists, dialogs, etc.) lives in `features/<name>/components/`. The split keeps the route → page wiring obvious and prevents non-page UI from leaking into the routing layer.
-   - **Page file names** are kebab-case and **drop the "page" suffix** — the `pages/` folder already conveys "this is a page." So `features/guest-gallery/pages/gallery-events.tsx`, not `gallery-home-page.tsx`.
+   - **Page file names** are kebab-case and **drop the "page" suffix** — the `pages/` folder already conveys "this is a page." So `features/guest-gallery/pages/gallery-events.tsx`, not `gallery-events-page.tsx`.
    - **Component file names** are kebab-case across the whole project: `gallery-card.tsx`, `photo-grid.tsx`, `back-button.tsx`. PascalCase file names like `GalleryCard.tsx` are not used.
    - **Exported component names stay PascalCase** (React requirement) and **do not use the `Page` suffix** — the file's location inside `features/<name>/pages/` already conveys that. So `gallery-events.tsx` exports `GalleryEvents`, `event-photos.tsx` exports `EventPhotos`, `admin-login.tsx` exports `AdminLogin`. Never `GalleryEventsPage`, `EventPhotosPage`, etc.
 6. **Never create global dumping folders.** Do not add to `src/components/`, `src/hooks/`, or `src/lib/` unless the code is genuinely shared across 3+ features.
@@ -268,7 +268,7 @@ src/
 8. **Co-locate types and schemas.** Feature-specific Zod schemas live in `features/<name>/utils.ts`. Cross-cutting types (e.g. `ApiError`) go in a shared location only when at least 3 features need them.
 9. **Name the route component for what it IS, not the file path.** TanStack only cares about the `Route` export; the inner component name is for humans. `routes/(gallery)/$token/index.tsx` renders `<GalleryEvents />`, not `<Index />`. The file name stays as the routing contract (`index.tsx`) — only rename the component inside.
 10. **Pages are audience-specific shells; sub-components are audience-agnostic.** The guest and admin experiences render the same underlying data (galleries, events, photos) but with different chrome, navigation graphs, and actions. Each audience gets its own page file under its own feature folder — never make a page that branches on `isAdmin`.
-    - **Pages own the shell.** `features/guest-gallery/pages/gallery-events.tsx` (`GalleryEvents`) renders the guest chrome (title `<PageHeader>`, no back button). `features/admin/pages/admin-gallery-events-events.tsx` (`AdminGalleryEvents`) renders the admin chrome (back-to-dashboard, copy-link button, "Add Event"). Same data, different shells, two pages.
+    - **Pages own the shell.** `features/guest-gallery/pages/gallery-events.tsx` (`GalleryEvents`) renders the guest chrome (title `<PageHeader>`, no back button). `features/admin/pages/admin-gallery-events.tsx` (`AdminGalleryEvents`) renders the admin chrome (back-to-dashboard, copy-link button, "Add Event"). Same data, different shells, two pages.
     - **Sub-components are shared and audience-agnostic.** The event list, photo grid, gallery card — these live in `features/guest-gallery/components/` and are imported by both the guest page and the admin page. They take their data as props and don't know who's looking at them.
     - **If a sub-component currently fetches its own data, refactor it to take data via props** before reusing it across audiences. The page is the right level to choose between `useGuestGallery(token)` and `useAdminGallery(id)` — the renderer just renders.
     - **Never import a page from another page.** Pages are leaves of the routing tree; reuse happens one layer down at the component level.
@@ -455,7 +455,7 @@ Route files exist to wire URL → page. They do not own UI or data.
 ```tsx
 // routes/(gallery)/$token/index.tsx — thin orchestrator
 import { createFileRoute } from '@tanstack/react-router';
-import { GalleryHome } from '@/features/guest-gallery/pages/gallery-events';
+import { GalleryEvents } from '@/features/guest-gallery/pages/gallery-events';
 
 export const Route = createFileRoute('/(gallery)/$token/')({
   component: RouteComponent,
@@ -469,7 +469,7 @@ function RouteComponent() {
 
 ```tsx
 // features/guest-gallery/pages/gallery-events.tsx — the real page
-export function GalleryHome({ token }: { token: string }) {
+export function GalleryEvents({ token }: { token: string }) {
   const { data, isLoading } = useGallery(token);
   // PageHeader + content live here
 }
@@ -520,7 +520,7 @@ Each page then composes `<Page>` + `<PageHeader>` + `<PageMain>` + `<Title>`:
 
 ```tsx
 // features/guest-gallery/pages/gallery-events.tsx — page owns its <main>
-export function GalleryHome({ token }: { token: string }) {
+export function GalleryEvents({ token }: { token: string }) {
   return (
     <Page>
       <PageHeader leftContent={<HeaderTitle>Photo Gallery</HeaderTitle>} />
@@ -661,7 +661,7 @@ Resend cooldown is 15s (matches NURA Events), implemented in `features/admin/com
 |---|---|---|
 | Folders | kebab-case | `event-photos/`, `host-gallery/` |
 | Component files | kebab-case | `gallery-card.tsx`, `upload-button.tsx`, `photo-grid.tsx` |
-| Page files (inside `features/<name>/pages/`) | kebab-case, **no `-page` suffix** | `gallery-events.tsx`, `event-photos.tsx` (NOT `gallery-home-page.tsx`) |
+| Page files (inside `features/<name>/pages/`) | kebab-case, **no `-page` suffix** | `gallery-events.tsx`, `event-photos.tsx` (NOT `gallery-events-page.tsx`) |
 | Exported component names | PascalCase (React requirement); **never** use the `Page` suffix on page exports — the `pages/` folder already conveys it | `GalleryCard`, `EventPhotos`, `AdminLogin` (NOT `EventPhotosPage`) |
 | Hook files | camelCase with `use` prefix | `useGallery.ts`, `useUploadUrl.ts` |
 | Utility files | camelCase | `imageHelpers.ts`, `formatBytes.ts` |
