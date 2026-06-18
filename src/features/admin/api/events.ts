@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { adminFetch } from '@/lib/api';
+import { useAdminFetch } from '@/hooks/use-admin-fetch';
 
 export type ParticipantRole = 'HOST' | 'CO_HOST' | 'GUEST';
 export type RsvpStatus = 'PENDING' | 'GOING' | 'DECLINED';
@@ -25,9 +25,10 @@ export interface EventParticipant {
 }
 
 export function useEventParticipants(eventId: string | undefined) {
+	const fetcher = useAdminFetch();
 	return useQuery({
 		queryKey: ['event-participants', eventId ?? ''] as const,
-		queryFn: () => adminFetch<EventParticipant[]>(`/events/${eventId}/participants`),
+		queryFn: () => fetcher<EventParticipant[]>(`/events/${eventId}/participants`),
 		enabled: Boolean(eventId),
 	});
 }
@@ -75,10 +76,11 @@ export interface SearchEventsResult {
 const ADMIN_EVENTS_SEARCH_KEY = ['admin-events-search'] as const;
 
 export function useAdminEventsSearch(filter: EventFilterDto = {}) {
+	const fetcher = useAdminFetch();
 	return useQuery({
 		queryKey: [...ADMIN_EVENTS_SEARCH_KEY, filter],
 		queryFn: () =>
-			adminFetch<SearchEventsResult>('/events/admin/search', {
+			fetcher<SearchEventsResult>('/events/admin/search', {
 				method: 'POST',
 				body: filter,
 			}),

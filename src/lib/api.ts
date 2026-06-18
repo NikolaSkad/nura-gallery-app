@@ -1,5 +1,3 @@
-import { clearPersistedTokens, readAccessToken } from '@/lib/auth/storage';
-
 const BASE_URL = import.meta.env.VITE_BASE_API_URL;
 
 export class ApiError extends Error {
@@ -14,27 +12,16 @@ export class ApiError extends Error {
 	}
 }
 
-/**
- * Registered by AuthProvider on mount. Called by adminFetch on 401 so the
- * provider can flip its state to `anon`, which causes the router context to
- * change and the `/admin/*` boundary to redirect to `/admin/login`.
- */
-let onUnauthorized: (() => void) | null = null;
-
-export function setOnUnauthorized(cb: (() => void) | null): void {
-	onUnauthorized = cb;
-}
-
-interface AdminFetchOptions extends Omit<RequestInit, 'body'> {
+export interface FetchOptions extends Omit<RequestInit, 'body'> {
 	body?: unknown;
 }
 
-export async function adminFetch<T = unknown>(
+async function request<T>(
 	path: string,
-	options: AdminFetchOptions = {},
+	options: FetchOptions,
+	token: string | null,
 ): Promise<T> {
 	const { body, headers, ...rest } = options;
-	const token = readAccessToken();
 
 	const requestHeaders = new Headers(headers);
 	if (body !== undefined) requestHeaders.set('Content-Type', 'application/json');
@@ -52,10 +39,6 @@ export async function adminFetch<T = unknown>(
 		response.status === 204 ? null : isJson ? await response.json() : await response.text();
 
 	if (!response.ok) {
-		if (response.status === 401) {
-			clearPersistedTokens();
-			onUnauthorized?.();
-		}
 		const message =
 			(isJson && payload && typeof payload === 'object' && 'message' in payload
 				? String((payload as { message?: unknown }).message ?? '')
@@ -64,4 +47,16 @@ export async function adminFetch<T = unknown>(
 	}
 
 	return payload as T;
+}
+
+export function publicFetch<T = unknown>(path: string, options: FetchOptions = {}): Promise<T> {
+	return request<T>(path, options, null);
+}
+
+export function bearerFetch<T = unknown>(
+	path: string,
+	token: string,
+	options: FetchOptions = {},
+): Promise<T> {
+	return request<T>(path, options, token);
 }

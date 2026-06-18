@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { adminFetch, setOnUnauthorized } from '@/lib/api';
+import { bearerFetch } from '@/lib/api';
 import {
 	clearPersistedTokens,
 	readPersistedTokens,
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	const meQuery = useQuery({
 		queryKey: ME_QUERY_KEY,
-		queryFn: () => adminFetch<AdminUser>('/auth/me'),
+		queryFn: () => bearerFetch<AdminUser>('/auth/me', token as string),
 		enabled: token !== null && !hydrated,
 		retry: false,
 		staleTime: Number.POSITIVE_INFINITY,
@@ -52,11 +52,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		},
 		[queryClient],
 	);
-
-	useEffect(() => {
-		setOnUnauthorized(logout);
-		return () => setOnUnauthorized(null);
-	}, [logout]);
 
 	// Boot hydration: once /auth/me resolves (success or error), flip hydrated.
 	// On error, also clear the unusable persisted token. 401 specifically is

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { adminFetch } from '@/lib/api';
+import { useAdminFetch } from '@/hooks/use-admin-fetch';
 
 interface CreateGalleryDto {
 	displayName: string;
@@ -29,17 +29,19 @@ export interface Gallery {
 const ADMIN_GALLERIES_KEY = ['admin-galleries'] as const;
 
 export function useAdminGalleries() {
+	const fetcher = useAdminFetch();
 	return useQuery({
 		queryKey: ADMIN_GALLERIES_KEY,
-		queryFn: () => adminFetch<Gallery[]>('/gallery/admin/list'),
+		queryFn: () => fetcher<Gallery[]>('/gallery/admin/list'),
 	});
 }
 
 export function useCreateGallery() {
+	const fetcher = useAdminFetch();
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: (dto: CreateGalleryDto) =>
-			adminFetch<Gallery>('/gallery/admin', { method: 'POST', body: dto }),
+			fetcher<Gallery>('/gallery/admin', { method: 'POST', body: dto }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ADMIN_GALLERIES_KEY });
 		},
