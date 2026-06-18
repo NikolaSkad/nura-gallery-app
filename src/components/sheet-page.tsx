@@ -17,7 +17,7 @@ interface SheetPageProps {
 
 export function SheetPage({ open, onClose, children, description, title }: SheetPageProps) {
 	return (
-		<Sheet open={open} onOpenChange={(next) => !next && onClose()}>
+		<Sheet open={open} onOpenChange={(next) => !next && onClose()} modal={false}>
 			<SheetContent
 				className="overflow-hidden bg-[url(/fireplace.jpg)] bg-cover bg-center bg-no-repeat sm:max-w-none!"
 				showCloseButton={false}

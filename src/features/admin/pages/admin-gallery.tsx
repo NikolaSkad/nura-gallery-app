@@ -6,6 +6,7 @@ import { HeaderTitle } from '@/components/page-header';
 import { Title } from '@/components/title';
 import { Button } from '@/components/ui/button';
 import { useAdminGalleries } from '@/features/admin/api/galleries';
+import { AddEventSheet } from '@/features/admin/components/add-event-sheet';
 import { AdminGalleryCard } from '@/features/admin/components/admin-gallery-card';
 import { AdminGalleryListSkeleton } from '@/features/admin/components/admin-gallery-list-skeleton';
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
@@ -13,6 +14,7 @@ import { CreateGallerySheet } from '@/features/admin/components/create-gallery-s
 
 export function AdminGallery() {
 	const [createOpen, setCreateOpen] = useState(false);
+	const [addEventOpen, setAddEventOpen] = useState(false);
 	const { data: galleries, isPending, isError } = useAdminGalleries();
 
 	return (
@@ -26,7 +28,9 @@ export function AdminGallery() {
 					<Button className="flex-1" onClick={() => setCreateOpen(true)}>
 						Add guest gallery
 					</Button>
-					<Button className="flex-1">Add event</Button>
+					<Button className="flex-1" onClick={() => setAddEventOpen(true)}>
+						Add event
+					</Button>
 				</div>
 				{isPending ? (
 					<AdminGalleryListSkeleton />
@@ -47,6 +51,7 @@ export function AdminGallery() {
 				)}
 			</PageMain>
 			<CreateGallerySheet open={createOpen} onClose={() => setCreateOpen(false)} />
+			<AddEventSheet open={addEventOpen} onClose={() => setAddEventOpen(false)} />
 		</Page>
 	);
 }

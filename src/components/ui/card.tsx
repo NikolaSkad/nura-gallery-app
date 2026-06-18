@@ -21,7 +21,7 @@ const cardVariants = cva('flex flex-col transition-colors', {
 			none: 'rounded-0',
 			sm: 'rounded-2xl',
 			md: 'rounded-4xl',
-			lg: 'rounded-[48px]',
+			lg: 'rounded-[36px]',
 		},
 	},
 	defaultVariants: {
