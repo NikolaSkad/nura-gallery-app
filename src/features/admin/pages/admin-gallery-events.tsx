@@ -2,11 +2,11 @@ import { Page, PageMain } from '@/components/page';
 import { Title } from '@/components/title';
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
 
-interface AdminGalleryProps {
+interface AdminGalleryEventsProps {
 	id: string;
 }
 
-export function AdminGallery({ id }: AdminGalleryProps) {
+export function AdminGalleryEvents({ id }: AdminGalleryEventsProps) {
 	return (
 		<Page>
 			<AdminPageHeader backTo="/admin" />
