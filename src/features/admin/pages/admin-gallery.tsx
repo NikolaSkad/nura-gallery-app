@@ -1,15 +1,22 @@
+import { Page, PageMain } from '@/components/page';
+import { Title } from '@/components/title';
+import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
+
 interface AdminGalleryProps {
 	id: string;
 }
 
 export function AdminGallery({ id }: AdminGalleryProps) {
 	return (
-		<div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center text-primary">
-			<h1 className="text-4xl leading-none tracking-wide">Gallery</h1>
-			<p className="text-sm text-muted-foreground">
-				Admin gallery view for <span className="text-primary">{id}</span>. Header (back + copy
-				link), shared <code>{'<GalleryList />'}</code>, and "Add Event" land here.
-			</p>
-		</div>
+		<Page>
+			<AdminPageHeader backTo="/admin" />
+			<PageMain>
+				<Title>Gallery</Title>
+				<p className="text-sm text-muted-foreground">
+					Admin gallery view for <span className="text-primary">{id}</span>. Header (back + copy
+					link), shared <code>{'<GalleryList />'}</code>, and "Add Event" land here.
+				</p>
+			</PageMain>
+		</Page>
 	);
 }

@@ -8,6 +8,8 @@ import {
 	PhoneIcon,
 } from 'lucide-react';
 
+import { Title } from '@/components/title';
+
 const CONTACT_PHONE = '17189808057';
 const CONTACT_PHONE_DISPLAY = '+1 (718) 980-8057';
 const CONTACT_EMAIL = 'shraga@nuraevents.com';
@@ -44,12 +46,12 @@ export function Home() {
 	return (
 		<main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-between gap-12 px-6 py-12 text-primary">
 			<div />
-			<header className="flex flex-col items-center gap-4 text-center">
-				<h1 className="text-5xl leading-none tracking-wide text-primary">Nura Gallery</h1>
+			<div className="flex flex-col items-center gap-4 text-center">
+				<Title size="xl">Nura Gallery</Title>
 				<p className="text-base leading-6">
 					Your event photos are private and accessible only through your personal gallery link.
 				</p>
-			</header>
+			</div>
 
 			<section className="flex flex-col gap-5">
 				<p className="text-center text-xs tracking-[0.25em] uppercase">Don't have a link yet</p>

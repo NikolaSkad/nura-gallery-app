@@ -1,15 +1,17 @@
 import GalleryIcon from '@/assets/gallery.svg?react';
+import { Page, PageMain } from '@/components/page';
 import { HeaderTitle, PageHeader } from '@/components/page-header';
+import { Title } from '@/components/title';
 import { GalleryList } from '@/features/guest-gallery/components/gallery-list';
 
 export function GalleryHome() {
 	return (
-		<div className="flex flex-1 flex-col gap-8 pb-8">
+		<Page>
 			<PageHeader leftContent={<HeaderTitle icon={<GalleryIcon />}>Photo Gallery</HeaderTitle>} />
-			<main className="flex flex-col gap-8 px-3">
-				<h1 className="text-2xl leading-8 text-primary">John Williams gallery</h1>
+			<PageMain>
+				<Title>John Williams gallery</Title>
 				<GalleryList />
-			</main>
-		</div>
+			</PageMain>
+		</Page>
 	);
 }

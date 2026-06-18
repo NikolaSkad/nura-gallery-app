@@ -1,10 +1,17 @@
+import { Page, PageMain } from '@/components/page';
+import { Title } from '@/components/title';
+import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
+
 export function CreateGallery() {
 	return (
-		<div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center text-primary">
-			<h1 className="text-4xl leading-none tracking-wide">New gallery</h1>
-			<p className="text-sm text-muted-foreground">
-				Create-gallery placeholder. Phone + event selection form will live here.
-			</p>
-		</div>
+		<Page>
+			<AdminPageHeader backTo="/admin" />
+			<PageMain>
+				<Title>New gallery</Title>
+				<p className="text-sm text-muted-foreground">
+					Create-gallery placeholder. Phone + event selection form will live here.
+				</p>
+			</PageMain>
+		</Page>
 	);
 }

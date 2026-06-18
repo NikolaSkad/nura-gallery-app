@@ -1,4 +1,6 @@
 import { Link } from '@tanstack/react-router';
+
+import { Title } from '@/components/title';
 import { Button } from '@/components/ui/button';
 
 interface NotFoundProps {
@@ -13,7 +15,7 @@ export function NotFound({
 	return (
 		<main className="mx-auto flex min-h-dvh w-full max-w-sm flex-col justify-between gap-8 px-6 pt-20 pb-8 text-primary">
 			<div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-				<h1 className="text-4xl leading-tight tracking-wide text-primary">{title}</h1>
+				<Title>{title}</Title>
 				<p className="max-w-[320px] text-base leading-6 text-foreground/90">{description}</p>
 			</div>
 			<Button asChild size="lg" className="w-full">

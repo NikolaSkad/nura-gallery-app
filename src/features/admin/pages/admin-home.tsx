@@ -1,10 +1,18 @@
+import GalleryIcon from '@/assets/gallery.svg?react';
+import { Page, PageMain } from '@/components/page';
+import { HeaderTitle } from '@/components/page-header';
+import { Title } from '@/components/title';
+import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
+
 export function AdminHome() {
 	return (
-		<div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center text-primary">
-			<h1 className="text-4xl leading-none tracking-wide">Galleries</h1>
-			<p className="text-sm text-muted-foreground">
-				Admin dashboard placeholder. Guest galleries list will live here.
-			</p>
-		</div>
+		<Page>
+			<AdminPageHeader
+				leftContent={<HeaderTitle icon={<GalleryIcon />}>Photo Gallery</HeaderTitle>}
+			/>
+			<PageMain>
+				<Title size="sm">Guests List</Title>
+			</PageMain>
+		</Page>
 	);
 }

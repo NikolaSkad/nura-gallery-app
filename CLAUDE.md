@@ -231,7 +231,9 @@ src/
 │               └── $id.tsx          # → <AdminGallery id={id} /> (URL: /admin/galleries/$id)
 ├── components/
 │   ├── ui/                          # shadcn primitives — vendored, owned by us (button, input, label, sheet)
-│   ├── page-header.tsx              # App-wide shared components (NOT shadcn-style)
+│   ├── page.tsx                     # <Page> + <PageMain> — standard page shell (no className escape hatch)
+│   ├── page-header.tsx              # <PageHeader> + <HeaderTitle> — per-page header
+│   ├── title.tsx                    # <Title> — the only way to render an <h1> (size sm/md/lg/xl)
 │   └── back-button.tsx
 ├── features/                        # Where the real code lives
 │   └── <feature-name>/
@@ -256,7 +258,7 @@ src/
 1. **Routes are thin orchestrators.** A route file parses params and renders one feature page component (e.g. `<GalleryHome token={token} />`). All real logic, data fetching, and JSX live in `features/<name>/pages/<page>.tsx` (and the components it composes from `features/<name>/components/`). Target ~20 lines per route file.
 2. **Per-route-group shells live in `route.tsx`.** The guest and admin groups have different chrome (no-auth vs JWT, different layout). Each group's `route.tsx` owns its wrapping `<div>` (max-width, centering, min-height) — **not `<main>`**. Pages render their own `<main>` under their `<PageHeader>`. See rule 4 and the *Per-group shell layout* example below.
 3. **`__root.tsx` stays minimal.** Just providers, the toast portal, and a top-level `<ErrorBoundary>`. Do not put the `<main>` element or any chrome in `__root.tsx` — the route-group layouts own the wrapping container. The shape today is `createRootRouteWithContext<{ queryClient, auth }>()` so child `beforeLoad`s can read both off route context.
-4. **`PageHeader` is rendered per page, and is a sibling of `<main>` — not inside it.** The header varies per screen (back vs title, different right actions). Each page renders `<div><PageHeader /><main>…body…</main></div>`. Layout owns the wrapper, page owns its own `<main>`. This keeps exactly one `<main>` per rendered document (HTML5 spec: only one non-hidden `<main>` per document) and exposes both the `banner` (`<header>`) and `main` landmarks to screen readers.
+4. **`PageHeader` is rendered per page, and is a sibling of `<main>` — not inside it.** The header varies per screen (back vs title, different right actions). Each page renders `<Page><PageHeader /><PageMain>…body…</PageMain></Page>` (see rule 11 for the wrappers). Layout owns the wrapper, page owns its own `<main>`. This keeps exactly one `<main>` per rendered document (HTML5 spec: only one non-hidden `<main>` per document) and exposes both the `banner` (`<header>`) and `main` landmarks to screen readers.
 5. **Default to a feature folder.** Anything tied to one or two screens goes in `features/<name>/`. Page components live in `features/<name>/pages/`; feature UI (cards, lists, dialogs, etc.) lives in `features/<name>/components/`. The split keeps the route → page wiring obvious and prevents non-page UI from leaking into the routing layer.
    - **Page file names** are kebab-case and **drop the "page" suffix** — the `pages/` folder already conveys "this is a page." So `features/guest-gallery/pages/gallery-home.tsx`, not `gallery-home-page.tsx`.
    - **Component file names** are kebab-case across the whole project: `gallery-card.tsx`, `photo-grid.tsx`, `back-button.tsx`. PascalCase file names like `GalleryCard.tsx` are not used.
@@ -271,6 +273,12 @@ src/
     - **If a sub-component currently fetches its own data, refactor it to take data via props** before reusing it across audiences. The page is the right level to choose between `useGuestGallery(token)` and `useAdminGallery(id)` — the renderer just renders.
     - **Never import a page from another page.** Pages are leaves of the routing tree; reuse happens one layer down at the component level.
     - **Don't use `{isAdmin && ...}` conditionals in pages.** If you find yourself reaching for that, you're conflating two audiences in one shell — split them into two pages instead. The auth boundary lives at the pathless layout (`routes/admin/_authed/route.tsx`), not inside individual pages.
+11. **Pages compose `<Page>` + `<PageMain>` + `<Title>` — not raw `<div>`, `<main>`, or `<h1>`.** These wrappers exist in `src/components/` to keep every page on the same visual rhythm. They are intentionally zero-prop (no `className` escape hatch) for `<Page>` / `<PageMain>` so new pages can't drift.
+    - **`<Page>`** = the outer column wrapper. Renders `<div className="flex flex-1 flex-col gap-8 pb-8">`. Fills the route-group shell vertically; supplies the gap below the header and the bottom safe-area padding.
+    - **`<PageMain>`** = the semantic `<main>`. Renders `<main className="flex flex-col gap-8 px-3">`. Standard horizontal padding and inter-section rhythm.
+    - **`<Title>`** = the only way to render an `<h1>`. Sizes are `sm` (text-2xl) / `md` (text-3xl, default) / `lg` (text-4xl) / `xl` (text-5xl). Always `text-primary`, `tracking-wide`, `leading-none`. Accepts `as="h2"` and `className` for one-off leading/size tweaks — but reach for them only when a real design constraint forces it.
+    - **Audience-specific page headers exist.** Admin pages use `<AdminPageHeader>` (wraps `<PageHeader>`, always renders a Logout icon button on the right; any caller-supplied `rightContent` sits to the left of it). Guest pages use `<PageHeader>` directly.
+    - **Exceptions are rare and load-bearing.** `admin-login.tsx` doesn't use `<Page>`/`<PageMain>` because its layout is a vertically-centered form (`flex-1 justify-center`) that the standard top-stacked rhythm would break. `routes/index.tsx` (landing) and `not-found.tsx` use bespoke `<main>` because they own their own shell concerns (`mx-auto min-h-dvh max-w-sm`) — they live outside any route group's `route.tsx`. If you're tempted to add a third exception, push back: the shape probably belongs inside `<Page>`/`<PageMain>` instead.
 
 ---
 
@@ -508,21 +516,24 @@ function AuthedLayout() {
 
 The two wrappers are intentionally identical today but stay duplicated rather than hoisted — see the note in the *AI Agent Behavior* section below ("Why we don't hoist the shell to `__root.tsx`").
 
-Each page then renders its own `<main>` under its `<PageHeader>`:
+Each page then composes `<Page>` + `<PageHeader>` + `<PageMain>` + `<Title>`:
 
 ```tsx
 // features/guest-gallery/pages/gallery-home.tsx — page owns its <main>
 export function GalleryHome({ token }: { token: string }) {
   return (
-    <div className="flex flex-1 flex-col gap-8 pb-8">
+    <Page>
       <PageHeader leftContent={<HeaderTitle>Photo Gallery</HeaderTitle>} />
-      <main className="flex flex-col gap-8 px-3">
+      <PageMain>
+        <Title size="sm">John Williams gallery</Title>
         {/* body */}
-      </main>
-    </div>
+      </PageMain>
+    </Page>
   );
 }
 ```
+
+Admin pages swap `<PageHeader>` for `<AdminPageHeader>` (same API, with a Logout icon always pinned right).
 
 ### Guest route group (`/gallery/$token/*`)
 
