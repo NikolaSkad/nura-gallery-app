@@ -16,7 +16,6 @@ import { Route as AdminAuthedRouteRouteImport } from './routes/admin/_authed/rou
 import { Route as galleryTokenRouteRouteImport } from './routes/(gallery)/$token/route'
 import { Route as AdminAuthedIndexRouteImport } from './routes/admin/_authed/index'
 import { Route as galleryTokenIndexRouteImport } from './routes/(gallery)/$token/index'
-import { Route as AdminAuthedGalleriesNewRouteImport } from './routes/admin/_authed/galleries/new'
 import { Route as AdminAuthedGalleriesIdRouteImport } from './routes/admin/_authed/galleries/$id'
 import { Route as galleryTokenEventsEventIdRouteImport } from './routes/(gallery)/$token/events.$eventId'
 
@@ -54,11 +53,6 @@ const galleryTokenIndexRoute = galleryTokenIndexRouteImport.update({
   path: '/',
   getParentRoute: () => galleryTokenRouteRoute,
 } as any)
-const AdminAuthedGalleriesNewRoute = AdminAuthedGalleriesNewRouteImport.update({
-  id: '/galleries/new',
-  path: '/galleries/new',
-  getParentRoute: () => AdminAuthedRouteRoute,
-} as any)
 const AdminAuthedGalleriesIdRoute = AdminAuthedGalleriesIdRouteImport.update({
   id: '/galleries/$id',
   path: '/galleries/$id',
@@ -80,7 +74,6 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminAuthedIndexRoute
   '/$token/events/$eventId': typeof galleryTokenEventsEventIdRoute
   '/admin/galleries/$id': typeof AdminAuthedGalleriesIdRoute
-  '/admin/galleries/new': typeof AdminAuthedGalleriesNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -89,7 +82,6 @@ export interface FileRoutesByTo {
   '/$token': typeof galleryTokenIndexRoute
   '/$token/events/$eventId': typeof galleryTokenEventsEventIdRoute
   '/admin/galleries/$id': typeof AdminAuthedGalleriesIdRoute
-  '/admin/galleries/new': typeof AdminAuthedGalleriesNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -102,7 +94,6 @@ export interface FileRoutesById {
   '/admin/_authed/': typeof AdminAuthedIndexRoute
   '/(gallery)/$token/events/$eventId': typeof galleryTokenEventsEventIdRoute
   '/admin/_authed/galleries/$id': typeof AdminAuthedGalleriesIdRoute
-  '/admin/_authed/galleries/new': typeof AdminAuthedGalleriesNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -115,7 +106,6 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/$token/events/$eventId'
     | '/admin/galleries/$id'
-    | '/admin/galleries/new'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -124,7 +114,6 @@ export interface FileRouteTypes {
     | '/$token'
     | '/$token/events/$eventId'
     | '/admin/galleries/$id'
-    | '/admin/galleries/new'
   id:
     | '__root__'
     | '/'
@@ -136,7 +125,6 @@ export interface FileRouteTypes {
     | '/admin/_authed/'
     | '/(gallery)/$token/events/$eventId'
     | '/admin/_authed/galleries/$id'
-    | '/admin/_authed/galleries/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -196,13 +184,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof galleryTokenIndexRouteImport
       parentRoute: typeof galleryTokenRouteRoute
     }
-    '/admin/_authed/galleries/new': {
-      id: '/admin/_authed/galleries/new'
-      path: '/galleries/new'
-      fullPath: '/admin/galleries/new'
-      preLoaderRoute: typeof AdminAuthedGalleriesNewRouteImport
-      parentRoute: typeof AdminAuthedRouteRoute
-    }
     '/admin/_authed/galleries/$id': {
       id: '/admin/_authed/galleries/$id'
       path: '/galleries/$id'
@@ -223,13 +204,11 @@ declare module '@tanstack/react-router' {
 interface AdminAuthedRouteRouteChildren {
   AdminAuthedIndexRoute: typeof AdminAuthedIndexRoute
   AdminAuthedGalleriesIdRoute: typeof AdminAuthedGalleriesIdRoute
-  AdminAuthedGalleriesNewRoute: typeof AdminAuthedGalleriesNewRoute
 }
 
 const AdminAuthedRouteRouteChildren: AdminAuthedRouteRouteChildren = {
   AdminAuthedIndexRoute: AdminAuthedIndexRoute,
   AdminAuthedGalleriesIdRoute: AdminAuthedGalleriesIdRoute,
-  AdminAuthedGalleriesNewRoute: AdminAuthedGalleriesNewRoute,
 }
 
 const AdminAuthedRouteRouteWithChildren =

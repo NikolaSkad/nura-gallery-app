@@ -18,7 +18,10 @@ interface SheetPageProps {
 export function SheetPage({ open, onClose, children, description, title }: SheetPageProps) {
 	return (
 		<Sheet open={open} onOpenChange={(next) => !next && onClose()}>
-			<SheetContent className="bg-surface-glass sm:max-w-none!" showCloseButton={false}>
+			<SheetContent
+				className="bg-surface-glass backdrop-blur-2xl sm:max-w-none!"
+				showCloseButton={false}
+			>
 				<SheetHeader>
 					<BackButton onClick={onClose} />
 					<SheetTitle>{title}</SheetTitle>

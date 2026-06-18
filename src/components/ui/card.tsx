@@ -4,7 +4,7 @@ import type * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-const cardVariants = cva('flex flex-col rounded-2xl transition-colors', {
+const cardVariants = cva('flex flex-col transition-colors', {
 	variants: {
 		variant: {
 			default: 'bg-card text-card-foreground',
@@ -17,10 +17,17 @@ const cardVariants = cva('flex flex-col rounded-2xl transition-colors', {
 			md: 'gap-1 p-4',
 			lg: 'gap-2 p-6',
 		},
+		rounded: {
+			none: 'rounded-0',
+			sm: 'rounded-2xl',
+			md: 'rounded-4xl',
+			lg: 'rounded-[48px]',
+		},
 	},
 	defaultVariants: {
 		variant: 'default',
 		padding: 'md',
+		rounded: 'sm',
 	},
 });
 
@@ -28,6 +35,7 @@ function Card({
 	className,
 	variant,
 	padding,
+	rounded,
 	asChild = false,
 	...props
 }: React.ComponentProps<'div'> &
@@ -39,7 +47,7 @@ function Card({
 		<Comp
 			data-slot="card"
 			data-variant={variant}
-			className={cn(cardVariants({ variant, padding, className }))}
+			className={cn(cardVariants({ variant, padding, rounded, className }))}
 			{...props}
 		/>
 	);
