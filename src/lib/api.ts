@@ -16,11 +16,7 @@ export interface FetchOptions extends Omit<RequestInit, 'body'> {
 	body?: unknown;
 }
 
-async function request<T>(
-	path: string,
-	options: FetchOptions,
-	token: string | null,
-): Promise<T> {
+async function request<T>(path: string, options: FetchOptions, token: string | null): Promise<T> {
 	const { body, headers, ...rest } = options;
 
 	const requestHeaders = new Headers(headers);

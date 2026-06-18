@@ -42,26 +42,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	}, [queryClient]);
 
 	const login = useCallback(
-		(response: VerifyOtpResponse) => {
+		(response: VerifyOtpResponse, user: AdminUser) => {
 			writePersistedTokens({
 				accessToken: response.accessToken.token,
 				refreshToken: response.refreshToken.token,
 			});
-			queryClient.setQueryData(ME_QUERY_KEY, response.user);
+			queryClient.setQueryData(ME_QUERY_KEY, user);
 			setToken(response.accessToken.token);
 		},
 		[queryClient],
 	);
 
 	// Boot hydration: once /auth/me resolves (success or error), flip hydrated.
-	// On error, also clear the unusable persisted token. 401 specifically is
-	// already handled by adminFetch → onUnauthorized → logout, but the effect
-	// covers non-401 (network, server) failures too.
+	// On error, clear the unusable persisted token. Also clear if the fetched
+	// user isn't an admin — non-admin tokens may exist in localStorage from the
+	// main NURA app (shared storage keys); they must not unlock the admin area.
 	useEffect(() => {
 		if (!meQuery.isSuccess && !meQuery.isError) return;
 		if (meQuery.isError && token !== null) logout();
+		if (meQuery.isSuccess && meQuery.data?.role !== 'ADMIN' && token !== null) logout();
 		setHydrated(true);
-	}, [meQuery.isSuccess, meQuery.isError, token, logout]);
+	}, [meQuery.isSuccess, meQuery.isError, meQuery.data, token, logout]);
 
 	const status: AuthStatus = useMemo(() => {
 		if (!hydrated) return 'loading';
