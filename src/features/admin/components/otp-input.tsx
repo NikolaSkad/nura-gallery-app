@@ -58,7 +58,7 @@ export function OtpInput({ length, value, onChange, autoFocus }: OtpInputProps) 
 	};
 
 	return (
-		<div className="flex items-center justify-center gap-2 rounded-full border border-input bg-input/40 px-4 py-3">
+		<div className="flex items-center justify-center gap-2 rounded-full bg-input/40 px-4 py-3.5">
 			{Array.from({ length }).map((_, index) => {
 				const digit = value[index] ?? '';
 				return (
@@ -68,7 +68,7 @@ export function OtpInput({ length, value, onChange, autoFocus }: OtpInputProps) 
 						ref={(el) => {
 							inputRefs.current[index] = el;
 						}}
-						placeholder="-"
+						placeholder="—"
 						type="tel"
 						inputMode="numeric"
 						maxLength={1}
@@ -80,9 +80,9 @@ export function OtpInput({ length, value, onChange, autoFocus }: OtpInputProps) 
 						onPaste={handlePaste}
 						onClick={(e) => handleClick(index, e)}
 						className={cn(
-							'h-10 min-w-7 flex-1 bg-transparent text-center text-lg font-medium tracking-widest outline-none',
+							'h-10 min-w-7 flex-1 bg-transparent text-center font-medium tracking-widest outline-none',
 							digit ? 'text-foreground' : 'text-tertiary',
-							'caret-primary focus-visible:text-primary',
+							'caret-primary placeholder:text-xl placeholder:leading-none focus-visible:text-primary',
 						)}
 					/>
 				);

@@ -147,7 +147,6 @@ export function AdminLogin() {
 						</div>
 						<Button
 							type="submit"
-							variant="filled"
 							size="lg"
 							disabled={requestOtp.isPending || phoneForm.formState.isSubmitting}
 						>
@@ -161,7 +160,7 @@ export function AdminLogin() {
 								Enter verification code
 							</h1>
 							<p className="text-sm text-muted-foreground">
-								We sent a code to <span className="font-medium text-foreground">{phoneNumber}</span>
+								We sent a code to <span className="font-medium text-primary">{phoneNumber}</span>
 							</p>
 						</div>
 						<OtpInput length={OTP_LENGTH} value={otp} onChange={handleOtpChange} autoFocus />
@@ -181,9 +180,6 @@ export function AdminLogin() {
 									setVerifyError(false);
 								}}
 							/>
-							<Button type="button" variant="ghost" size="sm" onClick={backToPhone}>
-								Use a different number
-							</Button>
 						</div>
 					</div>
 				)}
