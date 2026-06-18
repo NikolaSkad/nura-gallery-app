@@ -7,6 +7,7 @@ import { AuthProvider } from '@/lib/auth/auth-context';
 import type { AuthContextValue } from '@/lib/auth/types';
 import { useAuth } from '@/lib/auth/use-auth';
 import './index.css';
+import { Toaster } from 'sonner';
 import { routeTree } from './routeTree.gen';
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ createRoot(rootElement).render(
 	<StrictMode>
 		<QueryClientProvider client={queryClient}>
 			<AuthProvider>
+				<Toaster />
 				<AppRouter />
 			</AuthProvider>
 		</QueryClientProvider>

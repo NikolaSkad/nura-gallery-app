@@ -5,12 +5,15 @@ import { Page, PageMain } from '@/components/page';
 import { HeaderTitle } from '@/components/page-header';
 import { Title } from '@/components/title';
 import { Button } from '@/components/ui/button';
+import { useAdminGalleries } from '@/features/admin/api/galleries';
+import { AdminGalleryCard } from '@/features/admin/components/admin-gallery-card';
+import { AdminGalleryListSkeleton } from '@/features/admin/components/admin-gallery-list-skeleton';
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
 import { CreateGallerySheet } from '@/features/admin/components/create-gallery-sheet';
-import { GalleryCard } from '@/features/guest-gallery/components/gallery-card';
 
 export function AdminGallery() {
 	const [createOpen, setCreateOpen] = useState(false);
+	const { data: galleries, isPending, isError } = useAdminGalleries();
 
 	return (
 		<Page>
@@ -25,9 +28,23 @@ export function AdminGallery() {
 					</Button>
 					<Button className="flex-1">Add event</Button>
 				</div>
-				<div>
-					<GalleryCard />
-				</div>
+				{isPending ? (
+					<AdminGalleryListSkeleton />
+				) : isError ? (
+					<p className="text-sm text-destructive" role="alert">
+						Couldn't load galleries
+					</p>
+				) : galleries.length === 0 ? (
+					<p className="text-sm text-muted-foreground">No galleries yet</p>
+				) : (
+					<ul className="flex flex-col gap-2">
+						{galleries.map((gallery) => (
+							<li key={gallery.id}>
+								<AdminGalleryCard gallery={gallery} />
+							</li>
+						))}
+					</ul>
+				)}
 			</PageMain>
 			<CreateGallerySheet open={createOpen} onClose={() => setCreateOpen(false)} />
 		</Page>
