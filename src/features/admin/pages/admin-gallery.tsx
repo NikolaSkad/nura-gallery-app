@@ -4,7 +4,7 @@ import { HeaderTitle } from '@/components/page-header';
 import { Title } from '@/components/title';
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
 
-export function AdminHome() {
+export function AdminGallery() {
 	return (
 		<Page>
 			<AdminPageHeader
