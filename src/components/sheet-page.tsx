@@ -23,7 +23,7 @@ export function SheetPage({ open, onClose, children, description, title }: Sheet
 				showCloseButton={false}
 			>
 				<div aria-hidden className="pointer-events-none absolute inset-0 bg-background/80" />
-				<div aria-hidden />
+				{/* <div aria-hidden className="pointer-events-none absolute inset-0 bg-surface-glass" /> */}
 				<SheetHeader className="relative">
 					<BackButton onClick={onClose} />
 					<SheetTitle>{title}</SheetTitle>
