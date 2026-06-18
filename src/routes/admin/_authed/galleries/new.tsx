@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
+
 import { CreateGallery } from '@/features/admin/pages/create-gallery';
 
-export const Route = createFileRoute('/admin/galleries/new')({
+export const Route = createFileRoute('/admin/_authed/galleries/new')({
 	component: RouteComponent,
 });
 

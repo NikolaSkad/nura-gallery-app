@@ -32,10 +32,7 @@
 				"useKeyWithClickEvents": "off"
 			},
 			"style": {
-				"useComponentExportOnlyModules": {
-					"level": "warn",
-					"options": { "allowConstantExport": true }
-				}
+				"useComponentExportOnlyModules": "off"
 			}
 		}
 	},
@@ -62,8 +59,8 @@
 			"includes": ["**/src/components/ui/**"],
 			"linter": {
 				"rules": {
-					"style": {
-						"useComponentExportOnlyModules": "off"
+					"a11y": {
+						"noLabelWithoutControl": "off"
 					}
 				}
 			}

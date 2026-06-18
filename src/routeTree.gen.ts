@@ -11,12 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminAuthedRouteRouteImport } from './routes/admin/_authed/route'
 import { Route as galleryTokenRouteRouteImport } from './routes/(gallery)/$token/route'
+import { Route as AdminAuthedIndexRouteImport } from './routes/admin/_authed/index'
 import { Route as galleryTokenIndexRouteImport } from './routes/(gallery)/$token/index'
-import { Route as AdminGalleriesNewRouteImport } from './routes/admin/galleries/new'
-import { Route as AdminGalleriesIdRouteImport } from './routes/admin/galleries/$id'
+import { Route as AdminAuthedGalleriesNewRouteImport } from './routes/admin/_authed/galleries/new'
+import { Route as AdminAuthedGalleriesIdRouteImport } from './routes/admin/_authed/galleries/$id'
 import { Route as galleryTokenEventsEventIdRouteImport } from './routes/(gallery)/$token/events.$eventId'
 
 const AdminRouteRoute = AdminRouteRouteImport.update({
@@ -29,14 +30,13 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminAuthedRouteRoute = AdminAuthedRouteRouteImport.update({
+  id: '/_authed',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const galleryTokenRouteRoute = galleryTokenRouteRouteImport.update({
@@ -44,20 +44,25 @@ const galleryTokenRouteRoute = galleryTokenRouteRouteImport.update({
   path: '/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAuthedIndexRoute = AdminAuthedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminAuthedRouteRoute,
+} as any)
 const galleryTokenIndexRoute = galleryTokenIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => galleryTokenRouteRoute,
 } as any)
-const AdminGalleriesNewRoute = AdminGalleriesNewRouteImport.update({
+const AdminAuthedGalleriesNewRoute = AdminAuthedGalleriesNewRouteImport.update({
   id: '/galleries/new',
   path: '/galleries/new',
-  getParentRoute: () => AdminRouteRoute,
+  getParentRoute: () => AdminAuthedRouteRoute,
 } as any)
-const AdminGalleriesIdRoute = AdminGalleriesIdRouteImport.update({
+const AdminAuthedGalleriesIdRoute = AdminAuthedGalleriesIdRouteImport.update({
   id: '/galleries/$id',
   path: '/galleries/$id',
-  getParentRoute: () => AdminRouteRoute,
+  getParentRoute: () => AdminAuthedRouteRoute,
 } as any)
 const galleryTokenEventsEventIdRoute =
   galleryTokenEventsEventIdRouteImport.update({
@@ -71,32 +76,33 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteRouteWithChildren
   '/$token': typeof galleryTokenRouteRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
-  '/admin/': typeof AdminIndexRoute
-  '/admin/galleries/$id': typeof AdminGalleriesIdRoute
-  '/admin/galleries/new': typeof AdminGalleriesNewRoute
   '/$token/': typeof galleryTokenIndexRoute
+  '/admin/': typeof AdminAuthedIndexRoute
   '/$token/events/$eventId': typeof galleryTokenEventsEventIdRoute
+  '/admin/galleries/$id': typeof AdminAuthedGalleriesIdRoute
+  '/admin/galleries/new': typeof AdminAuthedGalleriesNewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminAuthedIndexRoute
   '/admin/login': typeof AdminLoginRoute
-  '/admin': typeof AdminIndexRoute
-  '/admin/galleries/$id': typeof AdminGalleriesIdRoute
-  '/admin/galleries/new': typeof AdminGalleriesNewRoute
   '/$token': typeof galleryTokenIndexRoute
   '/$token/events/$eventId': typeof galleryTokenEventsEventIdRoute
+  '/admin/galleries/$id': typeof AdminAuthedGalleriesIdRoute
+  '/admin/galleries/new': typeof AdminAuthedGalleriesNewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/(gallery)/$token': typeof galleryTokenRouteRouteWithChildren
+  '/admin/_authed': typeof AdminAuthedRouteRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
-  '/admin/': typeof AdminIndexRoute
-  '/admin/galleries/$id': typeof AdminGalleriesIdRoute
-  '/admin/galleries/new': typeof AdminGalleriesNewRoute
   '/(gallery)/$token/': typeof galleryTokenIndexRoute
+  '/admin/_authed/': typeof AdminAuthedIndexRoute
   '/(gallery)/$token/events/$eventId': typeof galleryTokenEventsEventIdRoute
+  '/admin/_authed/galleries/$id': typeof AdminAuthedGalleriesIdRoute
+  '/admin/_authed/galleries/new': typeof AdminAuthedGalleriesNewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,31 +111,32 @@ export interface FileRouteTypes {
     | '/admin'
     | '/$token'
     | '/admin/login'
+    | '/$token/'
     | '/admin/'
+    | '/$token/events/$eventId'
     | '/admin/galleries/$id'
     | '/admin/galleries/new'
-    | '/$token/'
-    | '/$token/events/$eventId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin/login'
     | '/admin'
-    | '/admin/galleries/$id'
-    | '/admin/galleries/new'
+    | '/admin/login'
     | '/$token'
     | '/$token/events/$eventId'
+    | '/admin/galleries/$id'
+    | '/admin/galleries/new'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/(gallery)/$token'
+    | '/admin/_authed'
     | '/admin/login'
-    | '/admin/'
-    | '/admin/galleries/$id'
-    | '/admin/galleries/new'
     | '/(gallery)/$token/'
+    | '/admin/_authed/'
     | '/(gallery)/$token/events/$eventId'
+    | '/admin/_authed/galleries/$id'
+    | '/admin/_authed/galleries/new'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -154,18 +161,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
     '/admin/login': {
       id: '/admin/login'
       path: '/login'
       fullPath: '/admin/login'
       preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/_authed': {
+      id: '/admin/_authed'
+      path: ''
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminAuthedRouteRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/(gallery)/$token': {
@@ -175,6 +182,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof galleryTokenRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/_authed/': {
+      id: '/admin/_authed/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminAuthedIndexRouteImport
+      parentRoute: typeof AdminAuthedRouteRoute
+    }
     '/(gallery)/$token/': {
       id: '/(gallery)/$token/'
       path: '/'
@@ -182,19 +196,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof galleryTokenIndexRouteImport
       parentRoute: typeof galleryTokenRouteRoute
     }
-    '/admin/galleries/new': {
-      id: '/admin/galleries/new'
+    '/admin/_authed/galleries/new': {
+      id: '/admin/_authed/galleries/new'
       path: '/galleries/new'
       fullPath: '/admin/galleries/new'
-      preLoaderRoute: typeof AdminGalleriesNewRouteImport
-      parentRoute: typeof AdminRouteRoute
+      preLoaderRoute: typeof AdminAuthedGalleriesNewRouteImport
+      parentRoute: typeof AdminAuthedRouteRoute
     }
-    '/admin/galleries/$id': {
-      id: '/admin/galleries/$id'
+    '/admin/_authed/galleries/$id': {
+      id: '/admin/_authed/galleries/$id'
       path: '/galleries/$id'
       fullPath: '/admin/galleries/$id'
-      preLoaderRoute: typeof AdminGalleriesIdRouteImport
-      parentRoute: typeof AdminRouteRoute
+      preLoaderRoute: typeof AdminAuthedGalleriesIdRouteImport
+      parentRoute: typeof AdminAuthedRouteRoute
     }
     '/(gallery)/$token/events/$eventId': {
       id: '/(gallery)/$token/events/$eventId'
@@ -206,18 +220,29 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminAuthedRouteRouteChildren {
+  AdminAuthedIndexRoute: typeof AdminAuthedIndexRoute
+  AdminAuthedGalleriesIdRoute: typeof AdminAuthedGalleriesIdRoute
+  AdminAuthedGalleriesNewRoute: typeof AdminAuthedGalleriesNewRoute
+}
+
+const AdminAuthedRouteRouteChildren: AdminAuthedRouteRouteChildren = {
+  AdminAuthedIndexRoute: AdminAuthedIndexRoute,
+  AdminAuthedGalleriesIdRoute: AdminAuthedGalleriesIdRoute,
+  AdminAuthedGalleriesNewRoute: AdminAuthedGalleriesNewRoute,
+}
+
+const AdminAuthedRouteRouteWithChildren =
+  AdminAuthedRouteRoute._addFileChildren(AdminAuthedRouteRouteChildren)
+
 interface AdminRouteRouteChildren {
+  AdminAuthedRouteRoute: typeof AdminAuthedRouteRouteWithChildren
   AdminLoginRoute: typeof AdminLoginRoute
-  AdminIndexRoute: typeof AdminIndexRoute
-  AdminGalleriesIdRoute: typeof AdminGalleriesIdRoute
-  AdminGalleriesNewRoute: typeof AdminGalleriesNewRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminAuthedRouteRoute: AdminAuthedRouteRouteWithChildren,
   AdminLoginRoute: AdminLoginRoute,
-  AdminIndexRoute: AdminIndexRoute,
-  AdminGalleriesIdRoute: AdminGalleriesIdRoute,
-  AdminGalleriesNewRoute: AdminGalleriesNewRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(

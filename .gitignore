@@ -6,6 +6,7 @@ dist/
 dist-ssr/
 build/
 .vite/
+.tanstack/
 
 # Env / secrets
 .env
