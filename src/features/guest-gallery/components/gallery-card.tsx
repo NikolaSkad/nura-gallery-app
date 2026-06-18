@@ -1,14 +1,18 @@
 import { Link } from '@tanstack/react-router';
 
+import { Card, CardDescription, CardTitle } from '@/components/ui/card';
+
 export function GalleryCard() {
 	return (
-		<Link
-			className="flex w-full flex-col gap-0.5 rounded-[20px] p-3 bg-surface-glass backdrop-blur-md"
-			to="/$token/events/$eventId"
-			params={{ token: 'abc123', eventId: '1' }}
-		>
-			<h3 className="text-sm leading-5 text-primary">Event 1</h3>
-			<p className="text-xs leading-[18px] text-primary">Friday 24 Oct, 18:00 - 21:00</p>
-		</Link>
+		<Card variant="glass" padding="sm" asChild>
+			<Link
+				className="w-full"
+				to="/$token/events/$eventId"
+				params={{ token: 'abc123', eventId: '1' }}
+			>
+				<CardTitle>Event 1</CardTitle>
+				<CardDescription>Friday 24 Oct, 18:00 - 21:00</CardDescription>
+			</Link>
+		</Card>
 	);
 }
