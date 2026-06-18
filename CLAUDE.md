@@ -215,14 +215,18 @@ src/
 ├── routes/                          # Routing only — thin orchestrators (~20 lines each)
 │   ├── __root.tsx                   # Providers, toast portal, ErrorBoundary, <Outlet />
 │   ├── index.tsx                    # Landing / redirect
-│   ├── gallery/
+│   ├── (gallery)/                   # Route group — parens stripped from URL, scope only
 │   │   └── $token/
 │   │       ├── route.tsx            # Guest shell: <main>, scroll area (no auth)
-│   │       ├── index.tsx            # → <GalleryHomePage token={token} />
+│   │       ├── index.tsx            # → <GalleryHome token={token} />   (URL: /$token)
 │   │       └── ...
 │   └── admin/
 │       ├── route.tsx                # Admin shell + auth boundary (JWT)
-│       └── ...
+│       ├── index.tsx                # → <AdminHome />            (galleries dashboard)
+│       ├── login.tsx                # → <AdminLogin />
+│       └── galleries/
+│           ├── new.tsx              # → <CreateGallery />        (admin-only creation flow)
+│           └── $id.tsx              # → <AdminGallery id={id} /> (admin view of one gallery)
 ├── components/
 │   ├── ui/                          # shadcn primitives — vendored, owned by us
 │   ├── page-header.tsx              # App-wide shared components (NOT shadcn-style)
@@ -244,18 +248,24 @@ src/
 
 ### Rules
 
-1. **Routes are thin orchestrators.** A route file parses params and renders one feature page component (e.g. `<GalleryHomePage token={token} />`). All real logic, data fetching, and JSX live in `features/<name>/pages/<page>.tsx` (and the components it composes from `features/<name>/components/`). Target ~20 lines per route file.
+1. **Routes are thin orchestrators.** A route file parses params and renders one feature page component (e.g. `<GalleryHome token={token} />`). All real logic, data fetching, and JSX live in `features/<name>/pages/<page>.tsx` (and the components it composes from `features/<name>/components/`). Target ~20 lines per route file.
 2. **Per-route-group shells live in `route.tsx`.** The guest and admin groups have different chrome (no-auth vs JWT, different layout). Each group's `route.tsx` owns its `<main>`, scroll container, and (for admin) auth boundary — pages render content only, not the wrapper.
 3. **`__root.tsx` stays minimal.** Just providers, the toast portal, and a top-level `<ErrorBoundary>`. Do not put the `<main>` element or any chrome in `__root.tsx` — the route-group layouts own that.
 4. **`PageHeader` is rendered per page, not in the layout.** The header varies per screen (back vs title, different right actions). Each page declares its own `<PageHeader …/>` as the first child of its content. The layout owns the surrounding `<main>` / scroll area only.
 5. **Default to a feature folder.** Anything tied to one or two screens goes in `features/<name>/`. Page components live in `features/<name>/pages/`; feature UI (cards, lists, dialogs, etc.) lives in `features/<name>/components/`. The split keeps the route → page wiring obvious and prevents non-page UI from leaking into the routing layer.
    - **Page file names** are kebab-case and **drop the "page" suffix** — the `pages/` folder already conveys "this is a page." So `features/guest-gallery/pages/gallery-home.tsx`, not `gallery-home-page.tsx`.
    - **Component file names** are kebab-case across the whole project: `gallery-card.tsx`, `photo-grid.tsx`, `back-button.tsx`. PascalCase file names like `GalleryCard.tsx` are not used.
-   - **Exported component names stay PascalCase** (React requirement). The `Page` suffix on the export is allowed — `event-photos.tsx` can export `EventPhotosPage`. Match what reads clearly at the call site.
+   - **Exported component names stay PascalCase** (React requirement) and **do not use the `Page` suffix** — the file's location inside `features/<name>/pages/` already conveys that. So `gallery-home.tsx` exports `GalleryHome`, `event-photos.tsx` exports `EventPhotos`, `admin-login.tsx` exports `AdminLogin`. Never `GalleryHomePage`, `EventPhotosPage`, etc.
 6. **Never create global dumping folders.** Do not add to `src/components/`, `src/hooks/`, or `src/lib/` unless the code is genuinely shared across 3+ features.
 7. **`src/components/ui/` is shadcn-only.** Custom shared components (NuraDrawer-equivalents, layout primitives, `PageHeader`) go in `src/components/` at the root, not inside `ui/`.
 8. **Co-locate types and schemas.** Feature-specific Zod schemas live in `features/<name>/utils.ts`. Cross-cutting types (e.g. `ApiError`) go in a shared location only when at least 3 features need them.
-9. **Name the route component for what it IS, not the file path.** TanStack only cares about the `Route` export; the inner component name is for humans. `routes/gallery/$token/index.tsx` → `GalleryHomePage`, not `IndexPage`. The file name stays as the routing contract (`index.tsx`) — only rename the component inside.
+9. **Name the route component for what it IS, not the file path.** TanStack only cares about the `Route` export; the inner component name is for humans. `routes/(gallery)/$token/index.tsx` renders `<GalleryHome />`, not `<Index />`. The file name stays as the routing contract (`index.tsx`) — only rename the component inside.
+10. **Pages are audience-specific shells; sub-components are audience-agnostic.** The guest and admin experiences render the same underlying data (galleries, events, photos) but with different chrome, navigation graphs, and actions. Each audience gets its own page file under its own feature folder — never make a page that branches on `isAdmin`.
+    - **Pages own the shell.** `features/guest-gallery/pages/gallery-home.tsx` (`GalleryHome`) renders the guest chrome (title `<PageHeader>`, no back button). `features/admin/pages/admin-gallery.tsx` (`AdminGallery`) renders the admin chrome (back-to-dashboard, copy-link button, "Add Event"). Same data, different shells, two pages.
+    - **Sub-components are shared and audience-agnostic.** The event list, photo grid, gallery card — these live in `features/guest-gallery/components/` and are imported by both the guest page and the admin page. They take their data as props and don't know who's looking at them.
+    - **If a sub-component currently fetches its own data, refactor it to take data via props** before reusing it across audiences. The page is the right level to choose between `useGuestGallery(token)` and `useAdminGallery(id)` — the renderer just renders.
+    - **Never import a page from another page.** Pages are leaves of the routing tree; reuse happens one layer down at the component level.
+    - **Don't use `{isAdmin && ...}` conditionals in pages.** If you find yourself reaching for that, you're conflating two audiences in one shell — split them into two pages instead. The auth boundary lives at the route group (`routes/admin/route.tsx`), not inside individual pages.
 
 ---
 
@@ -382,44 +392,68 @@ Always use `@/` for imports from `src/`. Never use relative paths that climb mor
 src/routes/
 ├── __root.tsx                          # Providers, toast portal, ErrorBoundary, <Outlet />
 ├── index.tsx                           # Landing — may redirect to /admin when JWT present
-├── gallery/
+├── (gallery)/
 │   └── $token/
 │       ├── route.tsx                   # Guest shell: <main>, scroll area (no auth)
-│       ├── index.tsx                   # → <GalleryHomePage token={token} />
-│       ├── events.$eventId.tsx         # → <EventPhotosPage token={t} eventId={e} />
-│       └── photos.$photoId.tsx         # → <PhotoViewerPage … />
+│       ├── index.tsx                   # → <GalleryHome token={token} />
+│       ├── events.$eventId.tsx         # → <EventPhotos token={t} eventId={e} />
+│       └── photos.$photoId.tsx         # → <PhotoViewer … />
 └── admin/
-    ├── route.tsx                       # Admin shell + auth boundary (redirects when no JWT)
-    ├── index.tsx                       # → <AdminDashboardPage />
+    ├── route.tsx                       # Admin shell + auth boundary (redirects to /admin/login when no JWT)
+    ├── index.tsx                       # → <AdminHome />            (dashboard, behind boundary)
+    ├── login.tsx                       # → <AdminLogin />           (only admin route open to anon)
     └── galleries/
-        ├── new.tsx                     # → <CreateGalleryPage />
-        └── $id.tsx                     # → <ManageGalleryPage id={id} />
+        ├── new.tsx                     # → <CreateGallery />        (admin-only creation flow)
+        └── $id.tsx                     # → <AdminGallery id={id} /> (admin view of one gallery)
 ```
 
 (Layout above is the **target**; routes get added as features land — do not pre-scaffold empty files.)
+
+### URL map (current state)
+
+| URL | Auth | Page component | File |
+|---|---|---|---|
+| `/` | none | `Home` | `routes/index.tsx` |
+| `/$token` | token in URL | `GalleryHome` | `routes/(gallery)/$token/index.tsx` |
+| `/$token/events/$eventId` | token in URL | `EventPhotos` | `routes/(gallery)/$token/events.$eventId.tsx` |
+| `/admin` | JWT (boundary not yet wired) | `AdminHome` | `routes/admin/index.tsx` |
+| `/admin/login` | none | `AdminLogin` | `routes/admin/login.tsx` |
+| `/admin/galleries/new` | JWT | `CreateGallery` | `routes/admin/galleries/new.tsx` |
+| `/admin/galleries/$id` | JWT | `AdminGallery` | `routes/admin/galleries/$id.tsx` |
+| _any unmatched_ | none | `NotFound` | `defaultNotFoundComponent` in `main.tsx` |
+
+Two things to know when reading the table:
+
+- **Route groups don't appear in the URL.** The folder `routes/(gallery)/` is a TanStack Router *route group* — parentheses get stripped, so the guest URLs sit at the root (`/$token`), not under `/gallery/$token`. The group exists only to scope the guest shell (`route.tsx`) without adding a URL segment.
+- **`/admin/login` is the only admin route open to anonymous visitors.** Everything else under `/admin/*` is behind the JWT boundary in `routes/admin/route.tsx`. The home page's "Log in as admin" link points directly to `/admin/login` so users hit the form without a redirect bounce.
+
+Planned-but-not-yet-built URLs (don't scaffold until the feature lands):
+
+- `/$token/photos/$photoId` → guest single-photo viewer
+- `/admin/galleries/$id/events/$eventId` → admin event view (with upload / delete actions)
 
 ### The orchestrator pattern
 
 Route files exist to wire URL → page. They do not own UI or data.
 
 ```tsx
-// routes/gallery/$token/index.tsx — thin orchestrator
+// routes/(gallery)/$token/index.tsx — thin orchestrator
 import { createFileRoute } from '@tanstack/react-router';
-import { GalleryHomePage } from '@/features/guest-gallery/pages/gallery-home';
+import { GalleryHome } from '@/features/guest-gallery/pages/gallery-home';
 
-export const Route = createFileRoute('/gallery/$token/')({
+export const Route = createFileRoute('/(gallery)/$token/')({
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const { token } = Route.useParams();
-  return <GalleryHomePage token={token} />;
+  return <GalleryHome token={token} />;
 }
 ```
 
 ```tsx
 // features/guest-gallery/pages/gallery-home.tsx — the real page
-export function GalleryHomePage({ token }: { token: string }) {
+export function GalleryHome({ token }: { token: string }) {
   const { data, isLoading } = useGallery(token);
   // PageHeader + content live here
 }
@@ -515,7 +549,7 @@ Failure handling: if step 2 fails for a subset of files, surface per-file errors
 | Folders | kebab-case | `event-photos/`, `host-gallery/` |
 | Component files | kebab-case | `gallery-card.tsx`, `upload-button.tsx`, `photo-grid.tsx` |
 | Page files (inside `features/<name>/pages/`) | kebab-case, **no `-page` suffix** | `gallery-home.tsx`, `event-photos.tsx` (NOT `gallery-home-page.tsx`) |
-| Exported component names | PascalCase (React requirement); `Page` suffix on page exports is optional | `GalleryCard`, `EventPhotosPage` |
+| Exported component names | PascalCase (React requirement); **never** use the `Page` suffix on page exports — the `pages/` folder already conveys it | `GalleryCard`, `EventPhotos`, `AdminLogin` (NOT `EventPhotosPage`) |
 | Hook files | camelCase with `use` prefix | `useGallery.ts`, `useUploadUrl.ts` |
 | Utility files | camelCase | `imageHelpers.ts`, `formatBytes.ts` |
 | Type files | camelCase | `types.ts` |
