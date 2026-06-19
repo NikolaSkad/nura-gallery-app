@@ -47,3 +47,33 @@ export function useCreateGallery() {
 		},
 	});
 }
+
+interface BulkAssignGalleryEventDto {
+	eventId: string;
+	phoneNumbers: string[];
+	eventDisplayName?: string;
+}
+
+export interface BulkAssignGalleryEventResult {
+	created: number;
+	assigned: number;
+	skipped: number;
+	skippedNumbers: { phoneNumber: string; reason: string }[];
+	errors: { phoneNumber: string; message: string }[];
+}
+
+export function useBulkAssignGalleryEvent() {
+	const fetcher = useAdminFetch();
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (dto: BulkAssignGalleryEventDto) =>
+			fetcher<BulkAssignGalleryEventResult>('/gallery/admin/bulk-assign', {
+				method: 'POST',
+				body: dto,
+			}),
+		// The mutation may create new galleries server-side, so the list must refresh.
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ADMIN_GALLERIES_KEY });
+		},
+	});
+}
