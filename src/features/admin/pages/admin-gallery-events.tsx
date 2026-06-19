@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { Page, PageMain } from '@/components/page';
 import { Title } from '@/components/title';
 import { Button } from '@/components/ui/button';
 import { useAdminGallery } from '@/features/admin/api/galleries';
 import { AddEventSheet } from '@/features/admin/components/add-event-sheet';
-import { AdminEventCard } from '@/features/admin/components/admin-event-card';
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
+import { GalleryList } from '@/features/guest-gallery/components/gallery-list';
+import type { GalleryEventItem } from '@/features/guest-gallery/utils';
 
 interface AdminGalleryEventsProps {
 	id: string;
@@ -15,6 +16,16 @@ interface AdminGalleryEventsProps {
 export function AdminGalleryEvents({ id }: AdminGalleryEventsProps) {
 	const [addEventOpen, setAddEventOpen] = useState(false);
 	const { data: gallery, isPending, isError } = useAdminGallery(id);
+
+	const events = useMemo<GalleryEventItem[]>(
+		() =>
+			gallery?.events.map((event) => ({
+				id: event.eventId,
+				title: event.displayName,
+				description: `${event.photoCount} ${event.photoCount === 1 ? 'photo' : 'photos'}`,
+			})) ?? [],
+		[gallery],
+	);
 
 	const handleCopyLink = async () => {
 		if (!gallery) return;
@@ -60,16 +71,16 @@ export function AdminGalleryEvents({ id }: AdminGalleryEventsProps) {
 						>
 							Add event
 						</Button>
-						{gallery.events.length === 0 ? (
+						{events.length === 0 ? (
 							<p className="text-sm text-muted-foreground">No events yet</p>
 						) : (
-							<ul className="flex flex-col gap-2">
-								{gallery.events.map((event) => (
-									<li key={event.id}>
-										<AdminEventCard galleryId={gallery.id} event={event} />
-									</li>
-								))}
-							</ul>
+							<GalleryList
+								events={events}
+								buildLink={(event) => ({
+									to: '/admin/galleries/$id/events/$eventId',
+									params: { id, eventId: event.id },
+								})}
+							/>
 						)}
 					</>
 				)}
