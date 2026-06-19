@@ -6,7 +6,7 @@ const searchSchema = z.object({
 	img: z.string().optional(),
 });
 
-export const Route = createFileRoute('/admin/_authed/galleries/$id/events/$eventId')({
+export const Route = createFileRoute('/admin/_authed/galleries/$id/event/$eventId')({
 	component: RouteComponent,
 	validateSearch: (search) => searchSchema.parse(search),
 });

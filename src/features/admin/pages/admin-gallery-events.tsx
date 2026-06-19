@@ -77,7 +77,7 @@ export function AdminGalleryEvents({ id }: AdminGalleryEventsProps) {
 							<GalleryList
 								events={events}
 								buildLink={(event) => ({
-									to: '/admin/galleries/$id/events/$eventId',
+									to: '/admin/galleries/$id/event/$eventId',
 									params: { id, eventId: event.id },
 								})}
 							/>
