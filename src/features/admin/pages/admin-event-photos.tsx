@@ -12,16 +12,13 @@ interface AdminEventPhotosProps {
 	eventId: string;
 }
 
-export function AdminEventPhotos({
-	galleryId: _galleryId,
-	eventId: _eventId,
-}: AdminEventPhotosProps) {
+export function AdminEventPhotos({ galleryId, eventId: _eventId }: AdminEventPhotosProps) {
 	const lightbox = usePhotoLightbox(PHOTO_IDS);
 
 	return (
 		<Page>
 			<AdminPageHeader
-				backTo="/admin"
+				backTo={`/admin/galleries/${galleryId}`}
 				rightContent={
 					<div className="flex gap-2">
 						<Button size="sm" className="flex-1">

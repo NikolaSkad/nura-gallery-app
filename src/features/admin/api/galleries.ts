@@ -27,12 +27,22 @@ export interface Gallery {
 }
 
 const ADMIN_GALLERIES_KEY = ['admin-galleries'] as const;
+const ADMIN_GALLERY_KEY = (id: string) => ['admin-gallery', id] as const;
 
 export function useAdminGalleries() {
 	const fetcher = useAdminFetch();
 	return useQuery({
 		queryKey: ADMIN_GALLERIES_KEY,
 		queryFn: () => fetcher<Gallery[]>('/gallery/admin/list'),
+	});
+}
+
+export function useAdminGallery(id: string | undefined) {
+	const fetcher = useAdminFetch();
+	return useQuery({
+		queryKey: ADMIN_GALLERY_KEY(id ?? ''),
+		queryFn: () => fetcher<Gallery>(`/gallery/admin/${id}`),
+		enabled: Boolean(id),
 	});
 }
 

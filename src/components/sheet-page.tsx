@@ -13,17 +13,9 @@ interface SheetPageProps {
 	children: React.ReactNode;
 	title?: string;
 	description?: string;
-	isLight?: boolean;
 }
 
-export function SheetPage({
-	open,
-	onClose,
-	children,
-	description,
-	title,
-	isLight,
-}: SheetPageProps) {
+export function SheetPage({ open, onClose, children, description, title }: SheetPageProps) {
 	return (
 		<Sheet open={open} onOpenChange={(next) => !next && onClose()} modal={false}>
 			<SheetContent
