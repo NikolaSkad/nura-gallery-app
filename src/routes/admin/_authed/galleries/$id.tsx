@@ -1,11 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { AdminGalleryEvents } from '@/features/admin/pages/admin-gallery-events';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/admin/_authed/galleries/$id')({
-	component: RouteComponent,
+	component: () => <Outlet />,
 });
-
-function RouteComponent() {
-	const { id } = Route.useParams();
-	return <AdminGalleryEvents id={id} />;
-}

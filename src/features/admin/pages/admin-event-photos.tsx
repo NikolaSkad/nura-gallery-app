@@ -1,19 +1,29 @@
+import { useMemo } from 'react';
 import { Page, PageMain } from '@/components/page';
 import { Title } from '@/components/title';
 import { Button } from '@/components/ui/button';
+import { useAdminEvent } from '@/features/admin/api/events';
+import { useAdminGalleryEventPhotos } from '@/features/admin/api/galleries';
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
 import { PhotoGrid } from '@/features/guest-gallery/components/photo-grid';
 import { PhotoLightbox } from '@/features/guest-gallery/components/photo-lightbox';
 import { usePhotoLightbox } from '@/features/guest-gallery/hooks/use-photo-lightbox';
-import { PHOTO_IDS } from '@/features/guest-gallery/utils';
+import { formatEventDateRange } from '@/lib/format';
 
 interface AdminEventPhotosProps {
 	galleryId: string;
 	eventId: string;
 }
 
-export function AdminEventPhotos({ galleryId, eventId: _eventId }: AdminEventPhotosProps) {
-	const lightbox = usePhotoLightbox(PHOTO_IDS);
+export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) {
+	const photosQuery = useAdminGalleryEventPhotos(galleryId, eventId);
+	const eventQuery = useAdminEvent(eventId);
+
+	const photos = useMemo(() => photosQuery.data ?? [], [photosQuery.data]);
+	const photoIds = useMemo(() => photos.map((p) => p.id), [photos]);
+	const lightbox = usePhotoLightbox(photoIds);
+
+	const event = eventQuery.data;
 
 	return (
 		<Page>
@@ -32,16 +42,30 @@ export function AdminEventPhotos({ galleryId, eventId: _eventId }: AdminEventPho
 			/>
 			<PageMain>
 				<div className="flex flex-col gap-3">
-					<Title>Event 1</Title>
-					<p className="text-sm text-primary">Friday 24 Oct, 18:00 - 21:00</p>
+					<Title>{event?.name ?? (eventQuery.isPending ? 'Loading…' : 'Event')}</Title>
+					{event ? (
+						<p className="text-sm text-primary">
+							{formatEventDateRange(event.startAt, event.endAt)}
+						</p>
+					) : null}
 				</div>
 				<div className="flex gap-2">
-					<Button className="flex-1">Add photos</Button>
-					<Button className="flex-1">Download all</Button>
+					<Button className="w-fit">Add photos</Button>
+					<Button className="w-fit">Download all</Button>
 				</div>
-				<PhotoGrid onOpen={lightbox.openImage} />
+				{photosQuery.isPending ? (
+					<p className="text-sm text-muted-foreground">Loading photos…</p>
+				) : photosQuery.isError ? (
+					<p className="text-sm text-destructive" role="alert">
+						Couldn't load photos
+					</p>
+				) : photos.length === 0 ? (
+					<p className="text-sm text-muted-foreground">No photos yet</p>
+				) : (
+					<PhotoGrid photos={photos} onOpen={lightbox.openImage} />
+				)}
 			</PageMain>
-			<PhotoLightbox controller={lightbox}>
+			<PhotoLightbox controller={lightbox} photos={photos}>
 				<Button size="md" className="w-fit">
 					Download photo
 				</Button>

@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button';
 import { PhotoGrid } from '@/features/guest-gallery/components/photo-grid';
 import { PhotoLightbox } from '@/features/guest-gallery/components/photo-lightbox';
 import { usePhotoLightbox } from '@/features/guest-gallery/hooks/use-photo-lightbox';
-import { PHOTO_IDS } from '@/features/guest-gallery/utils';
+import { MOCK_GALLERY_PHOTOS } from '@/features/guest-gallery/utils';
 
 const route = getRouteApi('/(gallery)/$token/events/$eventId');
 
 export function EventPhotos() {
 	const { token } = route.useParams();
-	const lightbox = usePhotoLightbox(PHOTO_IDS);
+	const photoIds = MOCK_GALLERY_PHOTOS.map((p) => p.id);
+	const lightbox = usePhotoLightbox(photoIds);
 
 	return (
 		<Page>
@@ -29,9 +30,9 @@ export function EventPhotos() {
 					<Title>Event 1</Title>
 					<p className="text-sm text-primary">Friday 24 Oct, 18:00 - 21:00</p>
 				</div>
-				<PhotoGrid onOpen={lightbox.openImage} />
+				<PhotoGrid photos={MOCK_GALLERY_PHOTOS} onOpen={lightbox.openImage} />
 			</PageMain>
-			<PhotoLightbox controller={lightbox}>
+			<PhotoLightbox controller={lightbox} photos={MOCK_GALLERY_PHOTOS}>
 				<Button size="sm">Download photo</Button>
 			</PhotoLightbox>
 		</Page>

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import type { GalleryPhoto } from '@/features/guest-gallery/utils';
 import { useAdminFetch } from '@/hooks/use-admin-fetch';
 
 interface CreateGalleryDto {
@@ -43,6 +44,19 @@ export function useAdminGallery(id: string | undefined) {
 		queryKey: ADMIN_GALLERY_KEY(id ?? ''),
 		queryFn: () => fetcher<Gallery>(`/gallery/admin/${id}`),
 		enabled: Boolean(id),
+	});
+}
+
+const ADMIN_GALLERY_EVENT_PHOTOS_KEY = (galleryId: string, eventId: string) =>
+	['admin-gallery-event-photos', galleryId, eventId] as const;
+
+export function useAdminGalleryEventPhotos(galleryId: string, eventId: string) {
+	const fetcher = useAdminFetch();
+	return useQuery({
+		queryKey: ADMIN_GALLERY_EVENT_PHOTOS_KEY(galleryId, eventId),
+		queryFn: () =>
+			fetcher<GalleryPhoto[]>(`/gallery/admin/${galleryId}/events/${eventId}/photos`),
+		enabled: Boolean(galleryId && eventId),
 	});
 }
 

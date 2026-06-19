@@ -74,6 +74,7 @@ export interface SearchEventsResult {
 }
 
 const ADMIN_EVENTS_SEARCH_KEY = ['admin-events-search'] as const;
+const ADMIN_EVENT_KEY = (id: string) => ['admin-event', id] as const;
 
 export function useAdminEventsSearch(filter: EventFilterDto = {}) {
 	const fetcher = useAdminFetch();
@@ -84,5 +85,14 @@ export function useAdminEventsSearch(filter: EventFilterDto = {}) {
 				method: 'POST',
 				body: filter,
 			}),
+	});
+}
+
+export function useAdminEvent(id: string | undefined) {
+	const fetcher = useAdminFetch();
+	return useQuery({
+		queryKey: ADMIN_EVENT_KEY(id ?? ''),
+		queryFn: () => fetcher<AdminEvent>(`/events/${id}`),
+		enabled: Boolean(id),
 	});
 }

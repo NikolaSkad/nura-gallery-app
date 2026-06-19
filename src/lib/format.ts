@@ -1,3 +1,13 @@
+export function formatEventDateRange(startAt: string, endAt: string): string {
+	const start = new Date(startAt);
+	const end = new Date(endAt);
+	const day = start.toLocaleDateString('en-US', { weekday: 'long' });
+	const date = start.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+	const time = (d: Date) =>
+		d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+	return `${day} ${date}, ${time(start)} - ${time(end)}`;
+}
+
 export const formatPhoneNumberDisplay = (phone: string): string => {
 	if (!phone) return '';
 
