@@ -52,7 +52,7 @@ export function BackButton({
 			aria-label={ariaLabel}
 			className={cn(className)}
 		>
-			<ArrowLeft className="w-5 h-5" />
+			<ArrowLeft className="w-5! h-5" />
 		</Button>
 	);
 }

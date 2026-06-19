@@ -30,9 +30,7 @@ export function PageHeader({
 }: PageHeaderProps) {
 	return (
 		<header className={cn('flex items-center justify-between gap-3 p-4 min-h-17', className)}>
-			<div className="flex flex-1 items-center justify-start">
-				{leftContent ?? <BackButton to={backTo} onClick={onBack} />}
-			</div>
+			{leftContent ?? <BackButton to={backTo} onClick={onBack} />}
 			<div className="flex flex-1 items-center justify-end gap-2">{rightContent}</div>
 		</header>
 	);

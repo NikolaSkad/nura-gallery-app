@@ -13,9 +13,17 @@ interface SheetPageProps {
 	children: React.ReactNode;
 	title?: string;
 	description?: string;
+	isLight?: boolean;
 }
 
-export function SheetPage({ open, onClose, children, description, title }: SheetPageProps) {
+export function SheetPage({
+	open,
+	onClose,
+	children,
+	description,
+	title,
+	isLight,
+}: SheetPageProps) {
 	return (
 		<Sheet open={open} onOpenChange={(next) => !next && onClose()} modal={false}>
 			<SheetContent
@@ -23,6 +31,7 @@ export function SheetPage({ open, onClose, children, description, title }: Sheet
 				showCloseButton={false}
 			>
 				<div aria-hidden className="pointer-events-none absolute inset-0 bg-background/80" />
+
 				{/* <div aria-hidden className="pointer-events-none absolute inset-0 bg-surface-glass" /> */}
 				<SheetHeader className="relative">
 					<BackButton onClick={onClose} />
