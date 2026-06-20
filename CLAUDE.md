@@ -102,6 +102,7 @@ They apply to every contributor — human or AI agent.
 | Image previews | Supabase Image Transformations (`?width=&height=&resize=contain`) | Append query params to the public URL; full-res = raw public URL |
 | Client-side ZIP (bulk download) | JSZip (planned, not yet installed) | Backend has no ZIP endpoint — bundling is FE's job |
 | API mocking | MSW (planned) | Same `/api/...` paths as production |
+| Date / time | dayjs + utc + timezone plugins | All event timestamps are NYC (`America/New_York`). Use helpers in `src/lib/format.ts` (`formatEventDateTime`, `fromUtcISO`) — never `new Date()` for display, never hardcode UTC offsets. BE returns real UTC; we read NYC components for display. |
 | Lint + format | Biome | `pnpm lint`, `pnpm format`, `pnpm check` |
 
 ### Do not introduce
@@ -273,6 +274,18 @@ src/
     - **If a sub-component currently fetches its own data, refactor it to take data via props** before reusing it across audiences. The page is the right level to choose between `useGuestGallery(token)` and `useAdminGallery(id)` — the renderer just renders.
     - **Never import a page from another page.** Pages are leaves of the routing tree; reuse happens one layer down at the component level.
     - **Don't use `{isAdmin && ...}` conditionals in pages.** If you find yourself reaching for that, you're conflating two audiences in one shell — split them into two pages instead. The auth boundary lives at the pathless layout (`routes/admin/_authed/route.tsx`), not inside individual pages.
+    - **Paired pages today.** Two guest/admin page pairs follow this pattern. Add new pairs alongside them and keep them in sync — if you change a shared sub-component, both halves of the pair benefit automatically:
+
+      | Guest page (no auth) | Admin page (JWT, behind `_authed`) | Shared sub-components |
+      |---|---|---|
+      | `features/guest-gallery/pages/gallery-events.tsx` (`GalleryEvents`) | `features/admin/pages/admin-gallery-events.tsx` (`AdminGalleryEvents`) | `features/guest-gallery/components/gallery-list.tsx` |
+      | `features/guest-gallery/pages/event-photos.tsx` (`EventPhotos`) | `features/admin/pages/admin-event-photos.tsx` (`AdminEventPhotos`) | `features/guest-gallery/components/photo-grid.tsx`, `photo-card.tsx`, `photo-lightbox.tsx`; hook `features/guest-gallery/hooks/use-photo-lightbox.ts` |
+
+      What's audience-specific (lives only in the page):
+      - **Header chrome** — guest uses `<PageHeader>` (title + icon, no actions). Admin uses `<AdminPageHeader>` (back button + actions like Copy gallery link, Publish, Delete, plus the always-on Logout icon).
+      - **Action buttons in the body** — Add event, Add photos, Download all, Publish, Delete gallery are admin-only. Guest has Download gallery / Download photo.
+      - **Data source** — guest pages pull from token-based endpoints (`useGuestGallery(token)` family, no JWT). Admin pages pull from JWT-gated endpoints (`useAdminGallery(id)`, `useAdminGalleryEventPhotos(galleryId, eventId)`, `useAdminEvent(eventId)`).
+      - **Link target shape** — guest builds `/$token/...` links, admin builds `/admin/galleries/$id/...` links. Shared list components accept a `buildLink(event)` data prop so each page passes its own `{ to, params }` without the list knowing the route shape.
 11. **Pages compose `<Page>` + `<PageMain>` + `<Title>` — not raw `<div>`, `<main>`, or `<h1>`.** These wrappers exist in `src/components/` to keep every page on the same visual rhythm. They are intentionally zero-prop (no `className` escape hatch) for `<Page>` / `<PageMain>` so new pages can't drift.
     - **`<Page>`** = the outer column wrapper. Renders `<div className="flex flex-1 flex-col gap-8 pb-8">`. Fills the route-group shell vertically; supplies the gap below the header and the bottom safe-area padding.
     - **`<PageMain>`** = the semantic `<main>`. Renders `<main className="flex flex-col gap-8 px-3">`. Standard horizontal padding and inter-section rhythm.
@@ -404,23 +417,24 @@ Always use `@/` for imports from `src/`. Never use relative paths that climb mor
 
 ```
 src/routes/
-├── __root.tsx                          # createRootRouteWithContext<{queryClient,auth}>() + <Outlet />
-├── index.tsx                           # Landing
+├── __root.tsx                              # createRootRouteWithContext<{queryClient,auth}>() + <Outlet />
+├── index.tsx                               # Landing
 ├── (gallery)/
 │   └── $token/
-│       ├── route.tsx                   # Guest shell: wrapping <div> (no auth)
-│       ├── index.tsx                   # → <GalleryEvents token={token} />
-│       ├── events.$eventId.tsx         # → <EventPhotos token={t} eventId={e} />
-│       └── photos.$photoId.tsx         # → <PhotoViewer … />
+│       ├── route.tsx                       # Guest shell: wrapping <div> (no auth)
+│       ├── index.tsx                       # → <GalleryEvents token={token} />
+│       └── event.$eventId.tsx              # → <EventPhotos token={t} eventId={e} />
 └── admin/
-    ├── route.tsx                       # Bare <Outlet /> — no gate, no shell
-    ├── login.tsx                       # → <AdminLogin /> + reverse beforeLoad (authed → /admin)
-    └── _authed/                        # Pathless layout — strips from URL, scopes the auth gate
-        ├── route.tsx                   # beforeLoad gate (status !== 'authed' → /admin/login) + shell <div>
-        ├── index.tsx                   # → <AdminHome />            (URL: /admin)
+    ├── route.tsx                           # Bare <Outlet /> — no gate, no shell
+    ├── login.tsx                           # → <AdminLogin /> + reverse beforeLoad (authed → /admin)
+    └── _authed/                            # Pathless layout — strips from URL, scopes the auth gate
+        ├── route.tsx                       # beforeLoad gate (status !== 'authed' → /admin/login) + shell <div>
+        ├── index.tsx                       # → <AdminHome />            (URL: /admin)
         └── galleries/
-            ├── new.tsx                 # → <CreateGallery />        (URL: /admin/galleries/new)
-            └── $id.tsx                 # → <AdminGalleryEvents id={id} /> (URL: /admin/galleries/$id)
+            ├── new.tsx                     # → <CreateGallery />        (URL: /admin/galleries/new)
+            ├── $id.tsx                     # Layout: <Outlet /> only
+            ├── $id.index.tsx               # → <AdminGalleryEvents id={id} /> (URL: /admin/galleries/$id)
+            └── $id.event.$eventId.tsx      # → <AdminEventPhotos galleryId eventId /> (URL: /admin/galleries/$id/event/$eventId)
 ```
 
 (Layout above is the **target**; routes get added as features land — do not pre-scaffold empty files.)
@@ -431,23 +445,25 @@ src/routes/
 |---|---|---|---|
 | `/` | none | `Home` | `routes/index.tsx` |
 | `/$token` | token in URL | `GalleryEvents` | `routes/(gallery)/$token/index.tsx` |
-| `/$token/events/$eventId` | token in URL | `EventPhotos` | `routes/(gallery)/$token/events.$eventId.tsx` |
+| `/$token/event/$eventId` | token in URL | `EventPhotos` | `routes/(gallery)/$token/event.$eventId.tsx` |
 | `/admin` | JWT (gated by `_authed`) | `AdminHome` | `routes/admin/_authed/index.tsx` |
 | `/admin/login` | none | `AdminLogin` | `routes/admin/login.tsx` |
 | `/admin/galleries/new` | JWT (gated by `_authed`) | `CreateGallery` | `routes/admin/_authed/galleries/new.tsx` |
-| `/admin/galleries/$id` | JWT (gated by `_authed`) | `AdminGalleryEvents` | `routes/admin/_authed/galleries/$id.tsx` |
+| `/admin/galleries/$id` | JWT (gated by `_authed`) | `AdminGalleryEvents` | `routes/admin/_authed/galleries/$id.index.tsx` (layout: `$id.tsx`) |
+| `/admin/galleries/$id/event/$eventId` | JWT (gated by `_authed`) | `AdminEventPhotos` | `routes/admin/_authed/galleries/$id.event.$eventId.tsx` |
 | _any unmatched_ | none | `NotFound` | `defaultNotFoundComponent` in `main.tsx` |
 
-Three things to know when reading the table:
+Five things to know when reading the table:
 
 - **Route groups don't appear in the URL.** The folder `routes/(gallery)/` is a TanStack Router *route group* — parentheses get stripped, so the guest URLs sit at the root (`/$token`), not under `/gallery/$token`. The group exists only to scope the guest shell (`route.tsx`) without adding a URL segment.
 - **Underscore-prefixed segments don't appear in the URL either.** `routes/admin/_authed/` is a TanStack Router *pathless layout route* — the `_authed` segment is stripped from URLs, so `_authed/index.tsx` resolves to `/admin`, not `/admin/_authed`. The folder exists to scope the auth boundary (`beforeLoad`) and shell to authed routes only, without leaking into the URL.
 - **`/admin/login` is the only admin route open to anonymous visitors.** It's a sibling of `_authed/` (not a child), so it's not subject to the auth gate. The auth gate lives in `_authed/route.tsx`, which means new authed admin routes are added under `_authed/` and inherit the gate for free. The home page's "Log in as admin" link points directly to `/admin/login` so users hit the form without a redirect bounce.
+- **`event` is singular in URLs**, even though the BE uses `/events/...` (plural) in its API paths. Our routes are `/$token/event/$eventId` and `/admin/galleries/$id/event/$eventId`. The BE API path stays plural inside fetcher calls (`/gallery/admin/${id}/events/${eventId}/photos`) — that's external and not ours to change. Do not mix the two: FE URLs = singular, BE paths = whatever BE returns.
+- **Dot-notation filenames create *child* routes, not siblings.** `$id.event.$eventId.tsx` is registered as a child of `$id.tsx` — TanStack uses the dot prefix to detect nesting. That means the parent (`$id.tsx`) **must** render `<Outlet />` for the child to appear. When a parent path needs both its own page AND nested children, the parent becomes a layout (`$id.tsx` → `<Outlet />` only) and the page moves to a sibling `$id.index.tsx`. This is exactly the shape used for `/admin/galleries/$id` + `/admin/galleries/$id/event/$eventId`.
 
 Planned-but-not-yet-built URLs (don't scaffold until the feature lands):
 
 - `/$token/photos/$photoId` → guest single-photo viewer
-- `/admin/galleries/$id/events/$eventId` → admin event view (with upload / delete actions)
 
 ### The orchestrator pattern
 

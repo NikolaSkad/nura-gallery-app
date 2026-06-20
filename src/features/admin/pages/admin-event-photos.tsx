@@ -8,7 +8,7 @@ import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
 import { PhotoGrid } from '@/features/guest-gallery/components/photo-grid';
 import { PhotoLightbox } from '@/features/guest-gallery/components/photo-lightbox';
 import { usePhotoLightbox } from '@/features/guest-gallery/hooks/use-photo-lightbox';
-import { formatEventDateRange } from '@/lib/format';
+import { formatEventDateTime } from '@/lib/format';
 
 interface AdminEventPhotosProps {
 	galleryId: string;
@@ -24,6 +24,7 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 	const lightbox = usePhotoLightbox(photoIds);
 
 	const event = eventQuery.data;
+	const eventDateTime = event ? formatEventDateTime(event.startAt, event.endAt) : null;
 
 	return (
 		<Page>
@@ -43,9 +44,9 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 			<PageMain>
 				<div className="flex flex-col gap-3">
 					<Title>{event?.name ?? (eventQuery.isPending ? 'Loading…' : 'Event')}</Title>
-					{event ? (
+					{eventDateTime ? (
 						<p className="text-sm text-primary">
-							{formatEventDateRange(event.startAt, event.endAt)}
+							{eventDateTime.date} | {eventDateTime.time}
 						</p>
 					) : null}
 				</div>

@@ -19,7 +19,7 @@ export function GalleryEvents() {
 				<GalleryList
 					events={MOCK_GALLERY_EVENTS}
 					buildLink={(event) => ({
-						to: '/$token/events/$eventId',
+						to: '/$token/event/$eventId',
 						params: { token, eventId: event.id },
 					})}
 				/>

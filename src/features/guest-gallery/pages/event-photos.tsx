@@ -8,7 +8,7 @@ import { PhotoLightbox } from '@/features/guest-gallery/components/photo-lightbo
 import { usePhotoLightbox } from '@/features/guest-gallery/hooks/use-photo-lightbox';
 import { MOCK_GALLERY_PHOTOS } from '@/features/guest-gallery/utils';
 
-const route = getRouteApi('/(gallery)/$token/events/$eventId');
+const route = getRouteApi('/(gallery)/$token/event/$eventId');
 
 export function EventPhotos() {
 	const { token } = route.useParams();
