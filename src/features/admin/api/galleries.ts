@@ -54,8 +54,7 @@ export function useAdminGalleryEventPhotos(galleryId: string, eventId: string) {
 	const fetcher = useAdminFetch();
 	return useQuery({
 		queryKey: ADMIN_GALLERY_EVENT_PHOTOS_KEY(galleryId, eventId),
-		queryFn: () =>
-			fetcher<GalleryPhoto[]>(`/gallery/admin/${galleryId}/events/${eventId}/photos`),
+		queryFn: () => fetcher<GalleryPhoto[]>(`/gallery/admin/${galleryId}/events/${eventId}/photos`),
 		enabled: Boolean(galleryId && eventId),
 	});
 }

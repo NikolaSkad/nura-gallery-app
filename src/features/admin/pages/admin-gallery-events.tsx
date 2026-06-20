@@ -43,13 +43,7 @@ export function AdminGalleryEvents({ id }: AdminGalleryEventsProps) {
 			<AdminPageHeader
 				backTo="/admin"
 				rightContent={
-					<Button
-						variant="outline"
-						size="sm"
-						onClick={handleCopyLink}
-						disabled={!gallery}
-						className="w-fit"
-					>
+					<Button variant="outline" size="sm" onClick={handleCopyLink} disabled={!gallery}>
 						Copy gallery link
 					</Button>
 				}
@@ -64,11 +58,7 @@ export function AdminGalleryEvents({ id }: AdminGalleryEventsProps) {
 				) : (
 					<>
 						<Title>{gallery.displayName}</Title>
-						<Button
-							variant="outline"
-							className="self-start w-fit"
-							onClick={() => setAddEventOpen(true)}
-						>
+						<Button variant="outline" className="self-start" onClick={() => setAddEventOpen(true)}>
 							Add event
 						</Button>
 						{events.length === 0 ? (

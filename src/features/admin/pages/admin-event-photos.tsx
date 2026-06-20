@@ -51,8 +51,8 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 					) : null}
 				</div>
 				<div className="flex gap-2">
-					<Button className="w-fit">Add photos</Button>
-					<Button className="w-fit">Download all</Button>
+					<Button>Add photos</Button>
+					<Button>Download all</Button>
 				</div>
 				{photosQuery.isPending ? (
 					<p className="text-sm text-muted-foreground">Loading photos…</p>
@@ -67,9 +67,7 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 				)}
 			</PageMain>
 			<PhotoLightbox controller={lightbox} photos={photos}>
-				<Button size="md" className="w-fit">
-					Download photo
-				</Button>
+				<Button size="md">Download photo</Button>
 			</PhotoLightbox>
 		</Page>
 	);

@@ -102,6 +102,7 @@ export function CreateGallerySheet({ open, onClose }: CreateGallerySheetProps) {
 					<Button
 						type="submit"
 						size="lg"
+						fullWidth
 						disabled={createGallery.isPending || form.formState.isSubmitting}
 						className="mt-2"
 					>

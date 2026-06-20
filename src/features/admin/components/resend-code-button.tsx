@@ -45,6 +45,7 @@ export function ResendCodeButton({
 			type="button"
 			variant="ghost"
 			size="sm"
+			fullWidth
 			onClick={handleResend}
 			disabled={requestOtp.isPending}
 		>

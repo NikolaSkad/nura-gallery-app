@@ -18,7 +18,7 @@ export function NotFound({
 				<Title>{title}</Title>
 				<p className="max-w-[320px] text-base leading-6 text-foreground/90">{description}</p>
 			</div>
-			<Button asChild size="lg" className="w-full">
+			<Button asChild size="lg" fullWidth>
 				<Link to="/">Return home</Link>
 			</Button>
 		</main>

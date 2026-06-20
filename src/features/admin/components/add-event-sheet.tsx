@@ -209,6 +209,7 @@ export function AddEventSheet({ open, onClose }: AddEventSheetProps) {
 					<Button
 						type="submit"
 						size="lg"
+						fullWidth
 						disabled={bulkAssign.isPending || form.formState.isSubmitting}
 						className="mt-2"
 					>

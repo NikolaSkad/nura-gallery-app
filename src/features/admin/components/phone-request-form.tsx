@@ -76,6 +76,7 @@ export function PhoneRequestForm({ onSuccess }: PhoneRequestFormProps) {
 			<Button
 				type="submit"
 				size="lg"
+				fullWidth
 				disabled={requestOtp.isPending || form.formState.isSubmitting}
 			>
 				{requestOtp.isPending ? 'Sending…' : 'Send code'}

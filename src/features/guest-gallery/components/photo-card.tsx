@@ -14,12 +14,7 @@ export function PhotoCard({ photo, onOpen }: PhotoCardProps) {
 			onClick={() => onOpen(photo.id)}
 		>
 			{thumbnail ? (
-				<img
-					src={thumbnail}
-					alt=""
-					loading="lazy"
-					className="h-full w-full object-cover"
-				/>
+				<img src={thumbnail} alt="" loading="lazy" className="h-full w-full object-cover" />
 			) : null}
 		</button>
 	);

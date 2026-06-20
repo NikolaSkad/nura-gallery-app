@@ -5,7 +5,7 @@ import type * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-	"group/button inline-flex shrink-0 w-full touch-manipulation items-center justify-center border border-solid bg-clip-padding font-medium whitespace-nowrap transition-colors duration-150 outline-none select-none [-webkit-tap-highlight-color:transparent] focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive/50 aria-invalid:ring-2 aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
+	"group/button inline-flex shrink-0 touch-manipulation items-center justify-center border border-solid bg-clip-padding font-medium whitespace-nowrap transition-colors duration-150 outline-none select-none [-webkit-tap-highlight-color:transparent] focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive/50 aria-invalid:ring-2 aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
 	{
 		variants: {
 			variant: {
@@ -74,10 +74,12 @@ function Button({
 	className,
 	variant,
 	size,
+	fullWidth = false,
 	asChild = false,
 	...props
 }: React.ComponentProps<'button'> &
 	VariantProps<typeof buttonVariants> & {
+		fullWidth?: boolean;
 		asChild?: boolean;
 	}) {
 	const Comp = asChild ? Slot.Root : 'button';
@@ -87,7 +89,7 @@ function Button({
 			data-slot="button"
 			data-variant={variant}
 			data-size={size}
-			className={cn(buttonVariants({ variant, size, className }))}
+			className={cn(buttonVariants({ variant, size }), fullWidth && 'w-full', className)}
 			{...props}
 		/>
 	);
