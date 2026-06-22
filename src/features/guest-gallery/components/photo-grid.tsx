@@ -17,7 +17,9 @@ export function PhotoGrid({ photos, onOpen, onRemove }: PhotoGridProps) {
 					<PhotoCard
 						photo={photo}
 						onOpen={onOpen}
-						onRemove={onRemove && photo.localPreviewUrl ? onRemove : undefined}
+						onRemove={
+							onRemove && photo.localPreviewUrl && !photo.isUploading ? onRemove : undefined
+						}
 					/>
 				</li>
 			))}

@@ -1,4 +1,5 @@
 import { XIcon } from 'lucide-react';
+import { Spinner } from '@/components/ui/spinner';
 import type { GalleryPhoto } from '@/features/guest-gallery/utils';
 
 interface PhotoCardProps {
@@ -20,9 +21,23 @@ export function PhotoCard({ photo, onOpen, onRemove }: PhotoCardProps) {
 				onClick={() => onOpen(photo.id)}
 			>
 				{thumbnail ? (
-					<img src={thumbnail} alt="" loading="lazy" className="h-full w-full object-cover" />
+					<img
+						src={thumbnail}
+						alt=""
+						loading="lazy"
+						className={
+							photo.isUploading
+								? 'h-full w-full object-cover opacity-50 blur-[2px]'
+								: 'h-full w-full object-cover'
+						}
+					/>
 				) : null}
 			</button>
+			{photo.isUploading ? (
+				<div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-2xl bg-background/40 backdrop-blur-sm">
+					<Spinner className="size-8" />
+				</div>
+			) : null}
 			{onRemove ? (
 				<button
 					type="button"

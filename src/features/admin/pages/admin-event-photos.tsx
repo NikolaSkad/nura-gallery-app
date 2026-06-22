@@ -2,6 +2,7 @@ import { useMemo, useRef } from 'react';
 import { Page, PageMain } from '@/components/page';
 import { Title } from '@/components/title';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { useAdminEvent } from '@/features/admin/api/events';
 import { useAdminGalleryEventPhotos } from '@/features/admin/api/galleries';
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
@@ -42,6 +43,7 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 			mimeType: entry.file.type,
 			createdAt: '',
 			localPreviewUrl: entry.localPreviewUrl,
+			isUploading: entry.status === 'uploading',
 		}));
 		return [...pending, ...uploaded];
 	}, [photosQuery.data, upload.files]);
@@ -51,6 +53,20 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 
 	const event = eventQuery.data;
 	const eventDateTime = event ? formatEventDateTime(event.startAt, event.endAt) : null;
+
+	const openPhoto = photos.find((p) => p.id === lightbox.openId);
+	const isPendingOpen = Boolean(openPhoto?.localPreviewUrl);
+
+	// Navigate away from the photo we're about to drop so the lightbox doesn't
+	// auto-close (it does when the open id falls out of photoIds).
+	const handleRemoveOpen = () => {
+		if (!lightbox.openId) return;
+		const removedId = lightbox.openId;
+		if (lightbox.hasNext) lightbox.nextImage();
+		else if (lightbox.hasPrev) lightbox.prevImage();
+		else lightbox.closeImage();
+		upload.removeFile(removedId);
+	};
 
 	const pickFiles = () => inputRef.current?.click();
 	const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,7 +111,14 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 							onClick={() => upload.startUpload()}
 							disabled={upload.uploadableCount === 0 || upload.isUploading}
 						>
-							{upload.isUploading ? 'Uploading…' : 'Upload photos'}
+							{upload.isUploading ? (
+								<>
+									<Spinner className="size-4" />
+									Uploading…
+								</>
+							) : (
+								'Upload photos'
+							)}
 						</Button>
 					) : (
 						<Button>Download all</Button>
@@ -114,7 +137,13 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 				)}
 			</PageMain>
 			<PhotoLightbox controller={lightbox} photos={photos}>
-				<Button size="md">Download photo</Button>
+				{isPendingOpen ? (
+					<Button size="md" onClick={handleRemoveOpen}>
+						Remove photo
+					</Button>
+				) : (
+					<Button size="md">Download photo</Button>
+				)}
 			</PhotoLightbox>
 		</Page>
 	);

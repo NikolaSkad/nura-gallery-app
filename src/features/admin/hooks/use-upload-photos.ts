@@ -153,6 +153,10 @@ export function useUploadPhotos({
 		}
 
 		// Step 2 — PUT each file. BE returns URLs in the same order we asked.
+		// Track uploaded ids locally because React hasn't necessarily committed
+		// the `'uploaded'` setState by the time runWithConcurrency resolves —
+		// reading them back from filesRef would miss them and skip sync.
+		const uploadedIds: string[] = [];
 		const tasks = targets.map((entry, index) => async () => {
 			const url = urls[index]?.uploadUrl;
 			if (!url) {
@@ -164,6 +168,7 @@ export function useUploadPhotos({
 					updateEntry(entry.id, { progress: percent });
 				});
 				updateEntry(entry.id, { status: 'uploaded', progress: 100 });
+				uploadedIds.push(entry.id);
 			} catch (err) {
 				const message = err instanceof Error ? err.message : 'Upload failed';
 				updateEntry(entry.id, { status: 'error', error: message });
@@ -173,8 +178,7 @@ export function useUploadPhotos({
 		await runWithConcurrency(tasks, UPLOAD_CONCURRENCY);
 
 		// Step 3 — sync. Skip if every PUT failed.
-		const anyUploaded = filesRef.current.some((entry) => entry.status === 'uploaded');
-		if (anyUploaded) {
+		if (uploadedIds.length > 0) {
 			try {
 				const result = await sync.mutateAsync({ galleryId, eventId });
 				onAllUploaded?.(result.synced);
@@ -182,10 +186,8 @@ export function useUploadPhotos({
 				// Bytes are in storage but DB rows weren't created — flip back to
 				// error so the next click retries. Re-PUT is safe; BE issues fresh
 				// fileKeys on each presign.
-				for (const entry of filesRef.current) {
-					if (entry.status === 'uploaded') {
-						updateEntry(entry.id, { status: 'error', error: 'Sync failed — try again' });
-					}
+				for (const id of uploadedIds) {
+					updateEntry(id, { status: 'error', error: 'Sync failed — try again' });
 				}
 			}
 		}

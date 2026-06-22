@@ -14,6 +14,8 @@ export interface GalleryPhoto {
 	fullUrl?: string;
 	// Local blob URL for pending uploads. Set only on the client side.
 	localPreviewUrl?: string;
+	// Set on pending photos while their PUT to storage is in flight.
+	isUploading?: boolean;
 }
 
 export const MOCK_GALLERY_NAME = 'John Williams gallery';
