@@ -156,6 +156,13 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 		}
 	};
 
+	const handleSelectAll = () => {
+		const selectableIds = photos.filter((p) => !p.localPreviewUrl).map((p) => p.id);
+		if (selectableIds.length === 0) return;
+		setIsSelecting(true);
+		setSelectedIds(new Set(selectableIds));
+	};
+
 	return (
 		<Page>
 			<AdminPageHeader
@@ -190,11 +197,12 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 					) : null}
 				</div>
 				<input ref={inputRef} type="file" accept="image/*" multiple hidden onChange={handleFiles} />
-				<div className="flex gap-2">
+				<div className="flex justify-between gap-2">
 					<Button onClick={pickFiles} disabled={upload.isUploading}>
 						Add photos
 					</Button>
 					<Button>Download all</Button>
+					<Button onClick={handleSelectAll}>Select all</Button>
 				</div>
 				{photosQuery.isPending && !hasPending ? (
 					<p className="text-sm text-muted-foreground">Loading photos…</p>
