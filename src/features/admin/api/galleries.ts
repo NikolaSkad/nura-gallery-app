@@ -98,6 +98,27 @@ interface SyncPhotosArgs {
 	eventId: string;
 }
 
+interface DeletePhotoArgs {
+	photoId: string;
+	galleryId: string;
+	eventId: string;
+}
+
+export function useDeletePhoto() {
+	const fetcher = useAdminFetch();
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ photoId }: DeletePhotoArgs) =>
+			fetcher<void>(`/gallery/admin/photos/${photoId}`, { method: 'DELETE' }),
+		onSuccess: (_data, vars) => {
+			queryClient.invalidateQueries({
+				queryKey: ADMIN_GALLERY_EVENT_PHOTOS_KEY(vars.galleryId, vars.eventId),
+			});
+			queryClient.invalidateQueries({ queryKey: ADMIN_GALLERY_KEY(vars.galleryId) });
+		},
+	});
+}
+
 export function useSyncPhotos() {
 	const fetcher = useAdminFetch();
 	const queryClient = useQueryClient();

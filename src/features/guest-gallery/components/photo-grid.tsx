@@ -4,25 +4,38 @@ import type { GalleryPhoto } from '@/features/guest-gallery/utils';
 interface PhotoGridProps {
 	photos: GalleryPhoto[];
 	onOpen: (id: string) => void;
-	// When provided, pending photos (those with a localPreviewUrl) render an
-	// X button that calls this. Uploaded server photos are never removable here.
+	// Pending photos only: X in the top-right.
 	onRemove?: (id: string) => void;
+	// Uploaded photos only: checkbox in the top-left for multi-delete.
+	selectedIds?: Set<string>;
+	onToggleSelect?: (id: string) => void;
 }
 
-export function PhotoGrid({ photos, onOpen, onRemove }: PhotoGridProps) {
+export function PhotoGrid({
+	photos,
+	onOpen,
+	onRemove,
+	selectedIds,
+	onToggleSelect,
+}: PhotoGridProps) {
 	return (
 		<ul className="grid grid-cols-2 gap-2">
-			{photos.map((photo) => (
-				<li key={photo.id}>
-					<PhotoCard
-						photo={photo}
-						onOpen={onOpen}
-						onRemove={
-							onRemove && photo.localPreviewUrl && !photo.isUploading ? onRemove : undefined
-						}
-					/>
-				</li>
-			))}
+			{photos.map((photo) => {
+				const isPending = Boolean(photo.localPreviewUrl);
+				return (
+					<li key={photo.id}>
+						<PhotoCard
+							photo={photo}
+							onOpen={onOpen}
+							// Pending: removable (X), not selectable.
+							// Uploaded: selectable (checkbox), not removable here.
+							onRemove={onRemove && isPending && !photo.isUploading ? onRemove : undefined}
+							onToggleSelect={onToggleSelect && !isPending ? onToggleSelect : undefined}
+							isSelected={selectedIds?.has(photo.id) ?? false}
+						/>
+					</li>
+				);
+			})}
 		</ul>
 	);
 }

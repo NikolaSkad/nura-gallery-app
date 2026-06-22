@@ -16,6 +16,8 @@ export interface GalleryPhoto {
 	localPreviewUrl?: string;
 	// Set on pending photos while their PUT to storage is in flight.
 	isUploading?: boolean;
+	// Set on uploaded photos while a DELETE request is in flight.
+	isDeleting?: boolean;
 }
 
 export const MOCK_GALLERY_NAME = 'John Williams gallery';

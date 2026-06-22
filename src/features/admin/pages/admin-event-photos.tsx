@@ -1,10 +1,11 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { Page, PageMain } from '@/components/page';
 import { Title } from '@/components/title';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useAdminEvent } from '@/features/admin/api/events';
-import { useAdminGalleryEventPhotos } from '@/features/admin/api/galleries';
+import { useAdminGalleryEventPhotos, useDeletePhoto } from '@/features/admin/api/galleries';
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
 import { useUploadPhotos } from '@/features/admin/hooks/use-upload-photos';
 import { PhotoGrid } from '@/features/guest-gallery/components/photo-grid';
@@ -33,20 +34,31 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 		},
 	});
 
-	// Merge pending local photos with uploaded server photos. Pending first so
-	// they read top-to-bottom as "newest at top".
+	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+	const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+	const deletePhoto = useDeletePhoto();
+	const isDeleting = deletingIds.size > 0;
+
+	// Newest on top: pending (latest pick first) above uploaded (latest
+	// createdAt first). ISO timestamps sort lexicographically.
 	const photos = useMemo<GalleryPhoto[]>(() => {
-		const uploaded = photosQuery.data ?? [];
-		const pending: GalleryPhoto[] = upload.files.map((entry) => ({
-			id: entry.id,
-			fileKey: '',
-			mimeType: entry.file.type,
-			createdAt: '',
-			localPreviewUrl: entry.localPreviewUrl,
-			isUploading: entry.status === 'uploading',
-		}));
+		const uploaded = (photosQuery.data ?? [])
+			.slice()
+			.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+			.map((p) => (deletingIds.has(p.id) ? { ...p, isDeleting: true } : p));
+		const pending: GalleryPhoto[] = upload.files
+			.slice()
+			.reverse()
+			.map((entry) => ({
+				id: entry.id,
+				fileKey: '',
+				mimeType: entry.file.type,
+				createdAt: '',
+				localPreviewUrl: entry.localPreviewUrl,
+				isUploading: entry.status === 'uploading',
+			}));
 		return [...pending, ...uploaded];
-	}, [photosQuery.data, upload.files]);
+	}, [photosQuery.data, upload.files, deletingIds]);
 
 	const photoIds = useMemo(() => photos.map((p) => p.id), [photos]);
 	const lightbox = usePhotoLightbox(photoIds);
@@ -76,6 +88,55 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 	};
 
 	const hasPending = upload.files.length > 0;
+
+	// Drop selections for photos that no longer exist (after delete / refetch).
+	const validSelectedIds = useMemo(() => {
+		const ids = new Set<string>();
+		for (const photo of photos) {
+			if (!photo.localPreviewUrl && selectedIds.has(photo.id)) ids.add(photo.id);
+		}
+		return ids;
+	}, [photos, selectedIds]);
+
+	const toggleSelect = (id: string) => {
+		setSelectedIds((prev) => {
+			const next = new Set(prev);
+			if (next.has(id)) next.delete(id);
+			else next.add(id);
+			return next;
+		});
+	};
+
+	const handleDeleteSelected = async () => {
+		if (validSelectedIds.size === 0 || isDeleting) return;
+		const ids = Array.from(validSelectedIds);
+		setDeletingIds(new Set(ids));
+		setSelectedIds(new Set());
+		const results = await Promise.allSettled(
+			ids.map(async (photoId) => {
+				try {
+					await deletePhoto.mutateAsync({ photoId, galleryId, eventId });
+				} finally {
+					// Clear the per-photo flag as it resolves so the overlay lifts on
+					// each card individually, not in a single batch at the end.
+					setDeletingIds((prev) => {
+						const next = new Set(prev);
+						next.delete(photoId);
+						return next;
+					});
+				}
+			}),
+		);
+		const failed = results.filter((r) => r.status === 'rejected').length;
+		const succeeded = results.length - failed;
+		if (failed === 0) {
+			toast.success(`Deleted ${succeeded} ${succeeded === 1 ? 'photo' : 'photos'}`);
+		} else if (succeeded === 0) {
+			toast.error("Couldn't delete the selected photos");
+		} else {
+			toast.error(`Deleted ${succeeded}, ${failed} failed`);
+		}
+	};
 
 	return (
 		<Page>
@@ -133,9 +194,35 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 				) : photos.length === 0 ? (
 					<p className="text-sm text-muted-foreground">No photos yet</p>
 				) : (
-					<PhotoGrid photos={photos} onOpen={lightbox.openImage} onRemove={upload.removeFile} />
+					<PhotoGrid
+						photos={photos}
+						onOpen={lightbox.openImage}
+						onRemove={upload.removeFile}
+						selectedIds={validSelectedIds}
+						onToggleSelect={toggleSelect}
+					/>
 				)}
 			</PageMain>
+			{validSelectedIds.size > 0 ? (
+				<div className="pointer-events-none fixed inset-x-0 bottom-4 z-10 mx-auto flex w-full max-w-screen-sm justify-center px-4">
+					<Button
+						variant="filled"
+						size="lg"
+						onClick={handleDeleteSelected}
+						disabled={isDeleting}
+						className="pointer-events-auto shadow-lg"
+					>
+						{isDeleting ? (
+							<>
+								<Spinner className="size-4" />
+								Deleting…
+							</>
+						) : (
+							`Delete selected (${validSelectedIds.size})`
+						)}
+					</Button>
+				</div>
+			) : null}
 			<PhotoLightbox controller={lightbox} photos={photos}>
 				{isPendingOpen ? (
 					<Button size="md" onClick={handleRemoveOpen}>
