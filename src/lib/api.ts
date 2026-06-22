@@ -49,6 +49,14 @@ export function publicFetch<T = unknown>(path: string, options: FetchOptions = {
 	return request<T>(path, options, null);
 }
 
+// Guest gallery calls — token in the URL is the only credential. Alias of
+// publicFetch with a domain-specific name so call sites are explicit about
+// the auth model (and never accidentally swapped for adminFetch, which would
+// leak the JWT into a public context).
+export function guestFetch<T = unknown>(path: string, options: FetchOptions = {}): Promise<T> {
+	return request<T>(path, options, null);
+}
+
 export function bearerFetch<T = unknown>(
 	path: string,
 	token: string,
