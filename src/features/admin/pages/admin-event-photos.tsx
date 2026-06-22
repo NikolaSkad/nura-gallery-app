@@ -11,6 +11,7 @@ import {
 	useNotifyGallery,
 } from '@/features/admin/api/galleries';
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
+import { useDownloadEventPhotos } from '@/features/admin/hooks/use-download-event-photos';
 import { useUploadPhotos } from '@/features/admin/hooks/use-upload-photos';
 import { PhotoGrid } from '@/features/guest-gallery/components/photo-grid';
 import { PhotoLightbox } from '@/features/guest-gallery/components/photo-lightbox';
@@ -44,6 +45,17 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 	const deletePhotos = useDeletePhotos();
 	const isDeleting = deletingIds.size > 0;
 	const notifyGallery = useNotifyGallery();
+	const downloader = useDownloadEventPhotos();
+
+	const uploadedPhotos = photosQuery.data ?? [];
+	const downloadableCount = uploadedPhotos.filter((p) => Boolean(p.fullUrl)).length;
+
+	const handleDownloadAll = () => {
+		if (downloader.isDownloading) return;
+		const eventName = eventQuery.data?.name;
+		const zipName = eventName ? `${eventName} photos` : 'event photos';
+		downloader.download({ photos: uploadedPhotos, zipName });
+	};
 
 	const handlePublish = async () => {
 		if (notifyGallery.isPending) return;
@@ -201,7 +213,19 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 					<Button onClick={pickFiles} disabled={upload.isUploading}>
 						Add photos
 					</Button>
-					<Button>Download all</Button>
+					<Button
+						onClick={handleDownloadAll}
+						disabled={downloader.isDownloading || downloadableCount === 0}
+					>
+						{downloader.isDownloading ? (
+							<>
+								<Spinner className="size-4" />
+								{`Zipping… ${downloader.completed}/${downloader.total}`}
+							</>
+						) : (
+							'Download all'
+						)}
+					</Button>
 					<Button onClick={handleSelectAll}>Select all</Button>
 				</div>
 				{photosQuery.isPending && !hasPending ? (
