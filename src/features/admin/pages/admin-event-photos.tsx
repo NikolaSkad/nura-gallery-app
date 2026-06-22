@@ -5,7 +5,7 @@ import { Title } from '@/components/title';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useAdminEvent } from '@/features/admin/api/events';
-import { useAdminGalleryEventPhotos, useDeletePhoto } from '@/features/admin/api/galleries';
+import { useAdminGalleryEventPhotos, useDeletePhotos } from '@/features/admin/api/galleries';
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
 import { useUploadPhotos } from '@/features/admin/hooks/use-upload-photos';
 import { PhotoGrid } from '@/features/guest-gallery/components/photo-grid';
@@ -37,7 +37,7 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 	const [isSelecting, setIsSelecting] = useState(false);
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 	const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
-	const deletePhoto = useDeletePhoto();
+	const deletePhotos = useDeletePhotos();
 	const isDeleting = deletingIds.size > 0;
 
 	// Newest on top: pending (latest pick first) above uploaded (latest
@@ -126,30 +126,17 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 		const ids = Array.from(validSelectedIds);
 		setDeletingIds(new Set(ids));
 		setSelectedIds(new Set());
-		const results = await Promise.allSettled(
-			ids.map(async (photoId) => {
-				try {
-					await deletePhoto.mutateAsync({ photoId, galleryId, eventId });
-				} finally {
-					// Clear the per-photo flag as it resolves so the overlay lifts on
-					// each card individually, not in a single batch at the end.
-					setDeletingIds((prev) => {
-						const next = new Set(prev);
-						next.delete(photoId);
-						return next;
-					});
-				}
-			}),
-		);
-		const failed = results.filter((r) => r.status === 'rejected').length;
-		const succeeded = results.length - failed;
-		setIsSelecting(false);
-		if (failed === 0) {
-			toast.success(`Deleted ${succeeded} ${succeeded === 1 ? 'photo' : 'photos'}`);
-		} else if (succeeded === 0) {
-			toast.error("Couldn't delete the selected photos");
-		} else {
-			toast.error(`Deleted ${succeeded}, ${failed} failed`);
+		try {
+			await deletePhotos.mutateAsync({ photoIds: ids, galleryId, eventId });
+			setIsSelecting(false);
+			toast.success(`Deleted ${ids.length} ${ids.length === 1 ? 'photo' : 'photos'}`);
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Couldn't delete the selected photos";
+			toast.error(message);
+		} finally {
+			// Photos either disappear via query invalidation (success) or stay
+			// (failure). Either way the per-card overlay should clear.
+			setDeletingIds(new Set());
 		}
 	};
 
