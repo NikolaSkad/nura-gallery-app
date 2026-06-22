@@ -13,6 +13,7 @@ import {
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
 import { useDownloadEventPhotos } from '@/features/admin/hooks/use-download-event-photos';
 import { useUploadPhotos } from '@/features/admin/hooks/use-upload-photos';
+import { downloadSinglePhoto } from '@/features/admin/lib/download';
 import { PhotoGrid } from '@/features/guest-gallery/components/photo-grid';
 import { PhotoLightbox } from '@/features/guest-gallery/components/photo-lightbox';
 import { usePhotoLightbox } from '@/features/guest-gallery/hooks/use-photo-lightbox';
@@ -97,6 +98,24 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 
 	const openPhoto = photos.find((p) => p.id === lightbox.openId);
 	const isPendingOpen = Boolean(openPhoto?.localPreviewUrl);
+
+	const [isDownloadingOne, setIsDownloadingOne] = useState(false);
+
+	const handleDownloadOpen = async () => {
+		if (!openPhoto || isDownloadingOne) return;
+		setIsDownloadingOne(true);
+		try {
+			const baseName = eventQuery.data?.name
+				? `${eventQuery.data.name} - photo`
+				: `photo-${openPhoto.id}`;
+			await downloadSinglePhoto({ photo: openPhoto, baseName });
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Couldn't download photo";
+			toast.error(message);
+		} finally {
+			setIsDownloadingOne(false);
+		}
+	};
 
 	// Navigate away from the photo we're about to drop so the lightbox doesn't
 	// auto-close (it does when the open id falls out of photoIds).
@@ -310,7 +329,20 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 						Remove photo
 					</Button>
 				) : (
-					<Button size="md">Download photo</Button>
+					<Button
+						size="md"
+						onClick={handleDownloadOpen}
+						disabled={isDownloadingOne || !openPhoto?.fullUrl}
+					>
+						{isDownloadingOne ? (
+							<>
+								<Spinner className="size-4" />
+								Downloading…
+							</>
+						) : (
+							'Download photo'
+						)}
+					</Button>
 				)}
 			</PhotoLightbox>
 		</Page>

@@ -29,6 +29,46 @@ interface ZipPhoto {
 	url: string;
 }
 
+// Trigger a save dialog for an in-memory blob. The anchor + object URL dance is
+// what every "force download" pattern boils down to in browsers without
+// File System Access API support.
+function triggerBlobDownload(blob: Blob, fileName: string): void {
+	const objectUrl = URL.createObjectURL(blob);
+	try {
+		const anchor = document.createElement('a');
+		anchor.href = objectUrl;
+		anchor.download = fileName;
+		document.body.appendChild(anchor);
+		anchor.click();
+		anchor.remove();
+	} finally {
+		// Give the browser a tick to start the download before releasing the URL.
+		setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+	}
+}
+
+interface DownloadSinglePhotoArgs {
+	photo: GalleryPhoto;
+	baseName: string;
+	signal?: AbortSignal;
+}
+
+// Fetch a single photo and save it. Cross-origin Supabase URLs can't use
+// `<a download>` directly because the browser ignores the attribute and
+// navigates instead — fetching to a blob bypasses that.
+export async function downloadSinglePhoto({
+	photo,
+	baseName,
+	signal,
+}: DownloadSinglePhotoArgs): Promise<void> {
+	if (!photo.fullUrl) throw new Error('Photo is not ready to download');
+	const response = await fetch(photo.fullUrl, { signal });
+	if (!response.ok) throw new Error(`Failed to fetch photo (${response.status})`);
+	const blob = await response.blob();
+	const ext = extensionFor(photo.mimeType);
+	triggerBlobDownload(blob, `${safeFileName(baseName)}.${ext}`);
+}
+
 export function preparePhotosForZip(photos: GalleryPhoto[]): ZipPhoto[] {
 	const padWidth = String(photos.length).length;
 	const result: ZipPhoto[] = [];
@@ -81,16 +121,5 @@ export async function downloadPhotosAsZip({
 	const blob = await downloadZip(iter()).blob();
 	if (signal?.aborted) throw new DOMException('Aborted', 'AbortError');
 
-	const objectUrl = URL.createObjectURL(blob);
-	try {
-		const anchor = document.createElement('a');
-		anchor.href = objectUrl;
-		anchor.download = `${safeFileName(zipName)}.zip`;
-		document.body.appendChild(anchor);
-		anchor.click();
-		anchor.remove();
-	} finally {
-		// Give the browser a tick to start the download before releasing the URL.
-		setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-	}
+	triggerBlobDownload(blob, `${safeFileName(zipName)}.zip`);
 }
