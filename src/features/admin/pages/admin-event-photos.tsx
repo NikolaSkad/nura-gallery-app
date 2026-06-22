@@ -182,23 +182,7 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 					<Button onClick={pickFiles} disabled={upload.isUploading}>
 						Add photos
 					</Button>
-					{hasPending ? (
-						<Button
-							onClick={() => upload.startUpload()}
-							disabled={upload.uploadableCount === 0 || upload.isUploading}
-						>
-							{upload.isUploading ? (
-								<>
-									<Spinner className="size-4" />
-									Uploading…
-								</>
-							) : (
-								'Upload photos'
-							)}
-						</Button>
-					) : (
-						<Button>Download all</Button>
-					)}
+					<Button>Download all</Button>
 				</div>
 				{photosQuery.isPending && !hasPending ? (
 					<p className="text-sm text-muted-foreground">Loading photos…</p>
@@ -244,6 +228,34 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 							</>
 						) : (
 							`Delete selected (${validSelectedIds.size})`
+						)}
+					</Button>
+				</div>
+			) : hasPending ? (
+				<div className="pointer-events-none fixed inset-x-0 bottom-4 z-10 mx-auto flex w-full max-w-screen-sm justify-center gap-2 px-4">
+					<Button
+						variant="outline"
+						size="lg"
+						onClick={() => upload.reset()}
+						disabled={upload.isUploading}
+						className="pointer-events-auto"
+					>
+						Cancel
+					</Button>
+					<Button
+						variant="filled"
+						size="lg"
+						onClick={() => upload.startUpload()}
+						disabled={upload.uploadableCount === 0 || upload.isUploading}
+						className="pointer-events-auto shadow-lg"
+					>
+						{upload.isUploading ? (
+							<>
+								<Spinner className="size-4" />
+								Uploading…
+							</>
+						) : (
+							`Upload photos (${upload.uploadableCount})`
 						)}
 					</Button>
 				</div>

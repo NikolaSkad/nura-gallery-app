@@ -167,6 +167,17 @@ For text emphasis hierarchy (the design language for this app):
 - **Secondary / labels** → `text-muted-foreground` (off-white 60%)
 - **Tertiary / placeholders** → `text-tertiary` (off-white 30%)
 
+### Icons
+
+Icons default to **`text-primary`** (brand orange). This applies to action icons (close, expand, kebab/3-dots, copy, edit, add, etc.), icon buttons, and inline glyphs next to text. Borders on icon-shaped controls (e.g. checkboxes, toggles) also default to `border-primary`.
+
+Exceptions — use the semantic color only when the icon expresses that semantic:
+- **Destructive intent** (e.g. a confirmed delete-trash icon inside a destructive item row) → `text-destructive`
+- **Muted / disabled** state → `text-muted-foreground`
+- **Inverted on a filled primary surface** (e.g. checkmark on a selected orange checkbox) → `text-primary-foreground`
+
+Never use `text-foreground` (off-white) as the icon color just because it's "neutral" — that fights the design language and visually flattens the affordance. If you find yourself reaching for `text-foreground` on an icon, the icon probably doesn't belong in the design, or the design needs a discussion.
+
 ### The single-theme `dark` variant trick
 
 shadcn components ship with `dark:` utility variants (e.g. `dark:border-input`). Because we only have one theme (`.intimate`) and no light mode, `src/index.css` rewrites the variant so it always applies:
@@ -365,7 +376,28 @@ shadcn components are **vendored, not imported from a package**. They live in `s
 2. **Variant additions in `cva`** — if the same className combination repeats across 3+ call sites, add a new variant to the component's `cva` block rather than passing className.
 3. **Theme tokens via Tailwind utilities** — `bg-primary`, `text-muted-foreground`, `border-border`. These auto-switch with theme.
 4. **`className` prop with utility classes** — for one-off layout / spacing / responsive tweaks: `className="mt-4 flex-1 md:w-1/2"`.
-5. **`cn(...)` from `@/lib/utils`** — for conditional / merged classNames. Always use `cn` instead of template literals or string concatenation so `tailwind-merge` resolves conflicts correctly.
+5. **`cn(...)` from `@/lib/utils`** — for conditional / merged classNames. **Anything beyond a single static string belongs in `cn`.** That covers conditional tokens (`isOpen && 'bg-card'`), merged props (`cn(baseClasses, className)`), and arrays of state-driven classes. Reasons: (a) `tailwind-merge` resolves conflicting utilities so the last winner is deterministic, (b) shared parts of the className are written once instead of duplicated across both branches.
+
+```tsx
+// BAD — ternary that produces two near-identical strings
+className={isBusy
+  ? 'h-full w-full object-cover opacity-50 blur-[2px]'
+  : 'h-full w-full object-cover'}
+
+// BAD — template literal / concatenation
+className={`btn ${isPrimary ? 'btn-primary' : ''} ${className ?? ''}`}
+
+// GOOD — shared base + boolean-gated additions, merged via cn
+className={cn(
+  'h-full w-full object-cover',
+  isBusy && 'opacity-50 blur-[2px]',
+)}
+
+// GOOD — merging an incoming className prop on a shared component
+className={cn('rounded-full px-3 py-2', className)}
+```
+
+Rule of thumb: if you would write a `?:` and one side of it contains a className string, that's almost always a `cn(..., flag && '…')`.
 
 ### What `className` is acceptable for
 

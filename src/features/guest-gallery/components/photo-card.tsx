@@ -1,4 +1,5 @@
-import { CheckIcon, Maximize2Icon, MoreVerticalIcon, XIcon } from 'lucide-react';
+import { Maximize2Icon, MoreVerticalIcon, XIcon } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Spinner } from '@/components/ui/spinner';
 import type { GalleryPhoto } from '@/features/guest-gallery/utils';
@@ -27,11 +28,15 @@ export function PhotoCard({
 }: PhotoCardProps) {
 	const thumbnail = photo.localPreviewUrl ?? photo.previewUrl;
 	const isBusy = photo.isUploading || photo.isDeleting;
+	const isPending = Boolean(photo.localPreviewUrl);
 	return (
 		<div className="relative aspect-square w-full">
 			<button
 				type="button"
-				className="aspect-square h-full w-full overflow-hidden rounded-2xl bg-surface-glass backdrop-blur-md"
+				className={cn(
+					'aspect-square h-full w-full overflow-hidden rounded-2xl bg-surface-glass backdrop-blur-md',
+					isPending && 'border-2 border-primary',
+				)}
 				onClick={() => {
 					// In select mode the whole card toggles selection — easier to
 					// tap than the small checkbox.
@@ -45,11 +50,7 @@ export function PhotoCard({
 						src={thumbnail}
 						alt=""
 						loading="lazy"
-						className={
-							isBusy
-								? 'h-full w-full object-cover opacity-50 blur-[2px]'
-								: 'h-full w-full object-cover'
-						}
+						className={cn('h-full w-full object-cover', isBusy && 'opacity-50 blur-[2px]')}
 					/>
 				) : null}
 			</button>
@@ -60,23 +61,13 @@ export function PhotoCard({
 			) : null}
 			{onToggleSelect && !isBusy ? (
 				<>
-					<button
-						type="button"
-						onClick={(e) => {
-							e.stopPropagation();
-							onToggleSelect(photo.id);
-						}}
+					<Checkbox
+						checked={isSelected}
+						onCheckedChange={() => onToggleSelect(photo.id)}
+						onClick={(e) => e.stopPropagation()}
 						aria-label={isSelected ? 'Deselect photo' : 'Select photo'}
-						aria-pressed={isSelected}
-						className={cn(
-							'absolute top-1.5 left-1.5 flex size-6 items-center justify-center rounded-md border-2 transition-colors',
-							isSelected
-								? 'border-primary bg-primary text-primary-foreground'
-								: 'border-foreground/70 bg-background/40 backdrop-blur-sm',
-						)}
-					>
-						{isSelected ? <CheckIcon className="size-4" /> : null}
-					</button>
+						className="absolute top-1.5 left-1.5 size-6 rounded-md border-2 border-primary bg-background/40 backdrop-blur-sm [&_svg]:size-4"
+					/>
 					<button
 						type="button"
 						onClick={(e) => {
@@ -84,7 +75,7 @@ export function PhotoCard({
 							onOpen(photo.id);
 						}}
 						aria-label="Open preview"
-						className="absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur-sm transition-colors hover:bg-background/90"
+						className="absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-full bg-background/70 text-primary backdrop-blur-sm transition-colors hover:bg-background/90"
 					>
 						<Maximize2Icon className="size-4" />
 					</button>
@@ -98,7 +89,7 @@ export function PhotoCard({
 						onRemove(photo.id);
 					}}
 					aria-label="Remove photo"
-					className="absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur-sm transition-colors hover:bg-background/90"
+					className="absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-full bg-background/70 text-primary backdrop-blur-sm transition-colors hover:bg-background/90"
 				>
 					<XIcon className="size-4" />
 				</button>
@@ -110,7 +101,7 @@ export function PhotoCard({
 							type="button"
 							onClick={(e) => e.stopPropagation()}
 							aria-label="Photo options"
-							className="absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur-sm transition-colors hover:bg-background/90"
+							className="absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-full bg-background/70 text-primary backdrop-blur-sm transition-colors hover:bg-background/90"
 						>
 							<MoreVerticalIcon className="size-4" />
 						</button>
