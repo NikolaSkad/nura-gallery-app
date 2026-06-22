@@ -1,7 +1,7 @@
 // Helpers for the admin photo upload. No React here — state lives in
 // use-upload-photos.ts.
 
-// TODO:(domain-confirm): BE plan says 50 files / 50MB. Move to shared config when BE exposes it.
+// TODO(domain-confirm): BE plan says 50 files / 50MB. Move to shared config when BE exposes it.
 export const MAX_FILES_PER_BATCH = 50;
 export const MAX_FILE_BYTES = 50 * 1024 * 1024;
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import {
 	type UploadUrlResponse,
@@ -12,6 +13,7 @@ import {
 	UPLOAD_CONCURRENCY,
 	validateFile,
 } from '@/features/admin/lib/upload';
+import { ApiError } from '@/lib/api';
 
 // idle      — picked, waiting to upload
 // invalid   — client-rejected (bad type / too big), can't retry, must remove
@@ -144,7 +146,16 @@ export function useUploadPhotos({
 				})),
 			});
 		} catch (err) {
+			// BE sends { message, errorCode, context: { fileName: <mimeType> } } for
+			// type rejections — `context.fileName` is mis-named, it actually holds
+			// the offending mime type. Surface both in the toast.
 			const message = err instanceof Error ? err.message : 'Could not get upload URLs';
+			let badType: string | undefined;
+			if (err instanceof ApiError && err.body && typeof err.body === 'object') {
+				const body = err.body as { context?: { fileName?: string } };
+				badType = body.context?.fileName;
+			}
+			toast.error(badType ? `${message}: ${badType}` : message);
 			for (const entry of targets) {
 				updateEntry(entry.id, { status: 'error', error: message, progress: 0 });
 			}
