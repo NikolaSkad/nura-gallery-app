@@ -4,9 +4,11 @@ import type { GalleryPhoto } from '@/features/guest-gallery/utils';
 interface PhotoGridProps {
 	photos: GalleryPhoto[];
 	onOpen: (id: string) => void;
-	// Pending photos only: X in the top-right.
+	// Pending photos: X in the top-right that removes the local entry.
 	onRemove?: (id: string) => void;
-	// Uploaded photos only: checkbox in the top-left for multi-delete.
+	// Uploaded photos, default mode: 3-dots dropdown → "Delete photo".
+	onDelete?: (id: string) => void;
+	// Uploaded photos, select mode: checkbox in the top-left.
 	selectedIds?: Set<string>;
 	onToggleSelect?: (id: string) => void;
 }
@@ -15,6 +17,7 @@ export function PhotoGrid({
 	photos,
 	onOpen,
 	onRemove,
+	onDelete,
 	selectedIds,
 	onToggleSelect,
 }: PhotoGridProps) {
@@ -27,9 +30,11 @@ export function PhotoGrid({
 						<PhotoCard
 							photo={photo}
 							onOpen={onOpen}
-							// Pending: removable (X), not selectable.
-							// Uploaded: selectable (checkbox), not removable here.
+							// Pending: removable (X), no menu / no checkbox.
 							onRemove={onRemove && isPending && !photo.isUploading ? onRemove : undefined}
+							// Uploaded out of select mode: dropdown.
+							onDelete={onDelete && !isPending && !onToggleSelect ? onDelete : undefined}
+							// Uploaded in select mode: checkbox.
 							onToggleSelect={onToggleSelect && !isPending ? onToggleSelect : undefined}
 							isSelected={selectedIds?.has(photo.id) ?? false}
 						/>

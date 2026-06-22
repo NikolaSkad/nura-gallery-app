@@ -1,4 +1,5 @@
-import { CheckIcon, XIcon } from 'lucide-react';
+import { CheckIcon, Maximize2Icon, MoreVerticalIcon, XIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Spinner } from '@/components/ui/spinner';
 import type { GalleryPhoto } from '@/features/guest-gallery/utils';
 import { cn } from '@/lib/utils';
@@ -8,12 +9,22 @@ interface PhotoCardProps {
 	onOpen: (id: string) => void;
 	// Pending photos only: X in the top-right that removes the local entry.
 	onRemove?: (id: string) => void;
-	// Uploaded photos only: checkbox in the top-left for multi-delete.
+	// Uploaded photos, default mode: 3-dots dropdown in the top-right with a
+	// "Delete photo" item. Clicking it is what enters multi-select mode.
+	onDelete?: (id: string) => void;
+	// Uploaded photos, select mode: checkbox in the top-left.
 	isSelected?: boolean;
 	onToggleSelect?: (id: string) => void;
 }
 
-export function PhotoCard({ photo, onOpen, onRemove, isSelected, onToggleSelect }: PhotoCardProps) {
+export function PhotoCard({
+	photo,
+	onOpen,
+	onRemove,
+	onDelete,
+	isSelected,
+	onToggleSelect,
+}: PhotoCardProps) {
 	const thumbnail = photo.localPreviewUrl ?? photo.previewUrl;
 	const isBusy = photo.isUploading || photo.isDeleting;
 	return (
@@ -21,7 +32,12 @@ export function PhotoCard({ photo, onOpen, onRemove, isSelected, onToggleSelect 
 			<button
 				type="button"
 				className="aspect-square h-full w-full overflow-hidden rounded-2xl bg-surface-glass backdrop-blur-md"
-				onClick={() => onOpen(photo.id)}
+				onClick={() => {
+					// In select mode the whole card toggles selection — easier to
+					// tap than the small checkbox.
+					if (onToggleSelect) onToggleSelect(photo.id);
+					else onOpen(photo.id);
+				}}
 				disabled={isBusy}
 			>
 				{thumbnail ? (
@@ -43,23 +59,36 @@ export function PhotoCard({ photo, onOpen, onRemove, isSelected, onToggleSelect 
 				</div>
 			) : null}
 			{onToggleSelect && !isBusy ? (
-				<button
-					type="button"
-					onClick={(e) => {
-						e.stopPropagation();
-						onToggleSelect(photo.id);
-					}}
-					aria-label={isSelected ? 'Deselect photo' : 'Select photo'}
-					aria-pressed={isSelected}
-					className={cn(
-						'absolute top-1.5 left-1.5 flex size-6 items-center justify-center rounded-md border-2 transition-colors',
-						isSelected
-							? 'border-primary bg-primary text-primary-foreground'
-							: 'border-foreground/70 bg-background/40 backdrop-blur-sm',
-					)}
-				>
-					{isSelected ? <CheckIcon className="size-4" /> : null}
-				</button>
+				<>
+					<button
+						type="button"
+						onClick={(e) => {
+							e.stopPropagation();
+							onToggleSelect(photo.id);
+						}}
+						aria-label={isSelected ? 'Deselect photo' : 'Select photo'}
+						aria-pressed={isSelected}
+						className={cn(
+							'absolute top-1.5 left-1.5 flex size-6 items-center justify-center rounded-md border-2 transition-colors',
+							isSelected
+								? 'border-primary bg-primary text-primary-foreground'
+								: 'border-foreground/70 bg-background/40 backdrop-blur-sm',
+						)}
+					>
+						{isSelected ? <CheckIcon className="size-4" /> : null}
+					</button>
+					<button
+						type="button"
+						onClick={(e) => {
+							e.stopPropagation();
+							onOpen(photo.id);
+						}}
+						aria-label="Open preview"
+						className="absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur-sm transition-colors hover:bg-background/90"
+					>
+						<Maximize2Icon className="size-4" />
+					</button>
+				</>
 			) : null}
 			{onRemove ? (
 				<button
@@ -73,6 +102,32 @@ export function PhotoCard({ photo, onOpen, onRemove, isSelected, onToggleSelect 
 				>
 					<XIcon className="size-4" />
 				</button>
+			) : null}
+			{onDelete && !isBusy ? (
+				<Popover>
+					<PopoverTrigger asChild>
+						<button
+							type="button"
+							onClick={(e) => e.stopPropagation()}
+							aria-label="Photo options"
+							className="absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-full bg-background/70 text-foreground backdrop-blur-sm transition-colors hover:bg-background/90"
+						>
+							<MoreVerticalIcon className="size-4" />
+						</button>
+					</PopoverTrigger>
+					<PopoverContent align="end" className="w-40 p-1">
+						<button
+							type="button"
+							onClick={(e) => {
+								e.stopPropagation();
+								onDelete(photo.id);
+							}}
+							className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm text-destructive transition-colors hover:bg-muted"
+						>
+							Delete photo
+						</button>
+					</PopoverContent>
+				</Popover>
 			) : null}
 		</div>
 	);

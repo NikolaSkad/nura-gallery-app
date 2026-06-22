@@ -34,6 +34,7 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 		},
 	});
 
+	const [isSelecting, setIsSelecting] = useState(false);
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 	const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 	const deletePhoto = useDeletePhoto();
@@ -107,6 +108,19 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 		});
 	};
 
+	// Entry point from the per-photo "Delete photo" menu — enters multi-select
+	// mode with this photo pre-selected, so a single-photo delete still uses
+	// the same confirm-via-floating-button flow as a batch.
+	const enterSelectModeWith = (id: string) => {
+		setIsSelecting(true);
+		setSelectedIds(new Set([id]));
+	};
+
+	const cancelSelectMode = () => {
+		setIsSelecting(false);
+		setSelectedIds(new Set());
+	};
+
 	const handleDeleteSelected = async () => {
 		if (validSelectedIds.size === 0 || isDeleting) return;
 		const ids = Array.from(validSelectedIds);
@@ -129,6 +143,7 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 		);
 		const failed = results.filter((r) => r.status === 'rejected').length;
 		const succeeded = results.length - failed;
+		setIsSelecting(false);
 		if (failed === 0) {
 			toast.success(`Deleted ${succeeded} ${succeeded === 1 ? 'photo' : 'photos'}`);
 		} else if (succeeded === 0) {
@@ -198,18 +213,28 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 						photos={photos}
 						onOpen={lightbox.openImage}
 						onRemove={upload.removeFile}
-						selectedIds={validSelectedIds}
-						onToggleSelect={toggleSelect}
+						onDelete={isSelecting ? undefined : enterSelectModeWith}
+						selectedIds={isSelecting ? validSelectedIds : undefined}
+						onToggleSelect={isSelecting ? toggleSelect : undefined}
 					/>
 				)}
 			</PageMain>
-			{validSelectedIds.size > 0 ? (
-				<div className="pointer-events-none fixed inset-x-0 bottom-4 z-10 mx-auto flex w-full max-w-screen-sm justify-center px-4">
+			{isSelecting ? (
+				<div className="pointer-events-none fixed inset-x-0 bottom-4 z-10 mx-auto flex w-full max-w-screen-sm justify-center gap-2 px-4">
+					<Button
+						variant="outline"
+						size="lg"
+						onClick={cancelSelectMode}
+						disabled={isDeleting}
+						className="pointer-events-auto"
+					>
+						Cancel
+					</Button>
 					<Button
 						variant="filled"
 						size="lg"
 						onClick={handleDeleteSelected}
-						disabled={isDeleting}
+						disabled={isDeleting || validSelectedIds.size === 0}
 						className="pointer-events-auto shadow-lg"
 					>
 						{isDeleting ? (
