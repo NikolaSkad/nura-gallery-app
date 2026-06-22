@@ -6,10 +6,14 @@ export interface GalleryEventItem {
 
 export interface GalleryPhoto {
 	id: string;
-	publicUrl: string;
 	fileKey: string;
 	mimeType: string;
 	createdAt: string;
+	// Server-issued URLs from the BE.
+	previewUrl?: string;
+	fullUrl?: string;
+	// Local blob URL for pending uploads. Set only on the client side.
+	localPreviewUrl?: string;
 }
 
 export const MOCK_GALLERY_NAME = 'John Williams gallery';
@@ -22,13 +26,7 @@ export const MOCK_GALLERY_EVENTS: GalleryEventItem[] = [
 
 export const MOCK_GALLERY_PHOTOS: GalleryPhoto[] = Array.from({ length: 15 }, (_, i) => ({
 	id: `img-${i}`,
-	publicUrl: '',
 	fileKey: `mock/img-${i}.jpg`,
 	mimeType: 'image/jpeg',
 	createdAt: new Date().toISOString(),
 }));
-
-export function getThumbnailUrl(publicUrl: string): string {
-	if (!publicUrl) return '';
-	return `${publicUrl}?width=400&height=400&resize=contain`;
-}

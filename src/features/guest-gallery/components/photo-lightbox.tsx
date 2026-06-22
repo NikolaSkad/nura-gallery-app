@@ -17,11 +17,14 @@ export function PhotoLightbox({ controller, photos, children }: PhotoLightboxPro
 
 	return (
 		<SheetPage open={Boolean(openId)} onClose={closeImage}>
-			{current?.publicUrl ? (
-				<div className="absolute inset-0 flex items-center justify-center px-4">
-					<img src={current.publicUrl} alt="" className="max-h-full max-w-full object-contain" />
-				</div>
-			) : null}
+			{(() => {
+				const src = current?.localPreviewUrl ?? current?.fullUrl ?? current?.previewUrl;
+				return src ? (
+					<div className="absolute inset-0 flex items-center justify-center px-4">
+						<img src={src} alt="" className="max-h-full max-w-full object-contain" />
+					</div>
+				) : null;
+			})()}
 			<div className="absolute top-1/2 left-1/2 flex w-[calc(100%-32px)] -translate-x-1/2 -translate-y-1/2 items-center justify-between">
 				<Button size="md" onClick={prevImage} disabled={!hasPrev}>
 					<ChevronLeft />

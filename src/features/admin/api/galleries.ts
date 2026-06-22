@@ -59,6 +59,62 @@ export function useAdminGalleryEventPhotos(galleryId: string, eventId: string) {
 	});
 }
 
+export interface UploadFileInfo {
+	fileName: string;
+	mimeType: string;
+}
+
+export interface UploadUrlResponse {
+	fileKey: string;
+	bucketFileName: string;
+	uploadUrl: string;
+	fileName: string;
+}
+
+interface RequestUploadUrlsArgs {
+	galleryId: string;
+	eventId: string;
+	files: UploadFileInfo[];
+}
+
+export function useRequestUploadUrls() {
+	const fetcher = useAdminFetch();
+	return useMutation({
+		mutationFn: ({ galleryId, eventId, files }: RequestUploadUrlsArgs) =>
+			fetcher<UploadUrlResponse[]>(`/gallery/admin/${galleryId}/events/${eventId}/upload-urls`, {
+				method: 'POST',
+				body: { files },
+			}),
+	});
+}
+
+export interface SyncResult {
+	synced: number;
+	photos: GalleryPhoto[];
+}
+
+interface SyncPhotosArgs {
+	galleryId: string;
+	eventId: string;
+}
+
+export function useSyncPhotos() {
+	const fetcher = useAdminFetch();
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ galleryId, eventId }: SyncPhotosArgs) =>
+			fetcher<SyncResult>(`/gallery/admin/${galleryId}/events/${eventId}/photos/sync`, {
+				method: 'POST',
+			}),
+		onSuccess: (_data, vars) => {
+			queryClient.invalidateQueries({
+				queryKey: ADMIN_GALLERY_EVENT_PHOTOS_KEY(vars.galleryId, vars.eventId),
+			});
+			queryClient.invalidateQueries({ queryKey: ADMIN_GALLERY_KEY(vars.galleryId) });
+		},
+	});
+}
+
 export function useCreateGallery() {
 	const fetcher = useAdminFetch();
 	const queryClient = useQueryClient();
