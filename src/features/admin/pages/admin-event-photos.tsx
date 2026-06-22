@@ -5,7 +5,11 @@ import { Title } from '@/components/title';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useAdminEvent } from '@/features/admin/api/events';
-import { useAdminGalleryEventPhotos, useDeletePhotos } from '@/features/admin/api/galleries';
+import {
+	useAdminGalleryEventPhotos,
+	useDeletePhotos,
+	useNotifyGallery,
+} from '@/features/admin/api/galleries';
 import { AdminPageHeader } from '@/features/admin/components/admin-page-header';
 import { useUploadPhotos } from '@/features/admin/hooks/use-upload-photos';
 import { PhotoGrid } from '@/features/guest-gallery/components/photo-grid';
@@ -39,6 +43,18 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 	const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 	const deletePhotos = useDeletePhotos();
 	const isDeleting = deletingIds.size > 0;
+	const notifyGallery = useNotifyGallery();
+
+	const handlePublish = async () => {
+		if (notifyGallery.isPending) return;
+		try {
+			await notifyGallery.mutateAsync(galleryId);
+			toast.success('Guest notified');
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Couldn't notify the guest";
+			toast.error(message);
+		}
+	};
 
 	// Newest on top: pending (latest pick first) above uploaded (latest
 	// createdAt first). ISO timestamps sort lexicographically.
@@ -146,11 +162,20 @@ export function AdminEventPhotos({ galleryId, eventId }: AdminEventPhotosProps) 
 				backTo={`/admin/galleries/${galleryId}`}
 				rightContent={
 					<div className="flex gap-2">
-						<Button size="sm" className="flex-1">
-							Publish
-						</Button>
-						<Button size="sm" className="flex-1">
-							Delete gallery
+						<Button
+							size="sm"
+							className="flex-1"
+							onClick={handlePublish}
+							disabled={notifyGallery.isPending}
+						>
+							{notifyGallery.isPending ? (
+								<>
+									<Spinner className="size-4" />
+									Publishing…
+								</>
+							) : (
+								'Publish'
+							)}
 						</Button>
 					</div>
 				}

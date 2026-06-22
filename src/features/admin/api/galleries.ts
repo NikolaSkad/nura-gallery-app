@@ -139,6 +139,14 @@ export function useSyncPhotos() {
 	});
 }
 
+export function useNotifyGallery() {
+	const fetcher = useAdminFetch();
+	return useMutation({
+		mutationFn: (galleryId: string) =>
+			fetcher<void>(`/gallery/admin/${galleryId}/notify`, { method: 'POST' }),
+	});
+}
+
 export function useCreateGallery() {
 	const fetcher = useAdminFetch();
 	const queryClient = useQueryClient();
